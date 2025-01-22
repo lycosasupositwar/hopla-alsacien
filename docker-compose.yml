@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    restart: always
+    container_name: hopla-alsacien-app
+  frontend:
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile-frontend
+      ports:
+        - "8080:80"
+      restart: always
+      container_name: hopla-alsacien-frontend
+    depends_on:
+        - app
