@@ -3,13 +3,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     fetch('http://localhost:3000/api/mots')
         .then(response => {
+            console.log('Réponse de l\'API :', response); // Ajout du log
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
+            console.log('Données JSON :', data); // Ajout du log
             data.forEach(mot => {
+              console.log('Mot actuel :', mot);
                 const motCard = document.createElement('div');
                 motCard.classList.add('mot-card');
                 motCard.innerHTML = `
