@@ -1,8 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const motsContainer = document.getElementById('mots-container');
 
-    fetch('http://localhost:3000/api/mots') // Utilisation de l'API
-        .then(response => response.json())
+    fetch('http://localhost:3000/api/mots')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             data.forEach(mot => {
                 const motCard = document.createElement('div');
@@ -15,5 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 motsContainer.appendChild(motCard);
             });
         })
-        .catch(error => console.error('Erreur lors du chargement des mots:', error));
+        .catch(error => {
+            console.error('Erreur lors du chargement des mots:', error);
+            motsContainer.innerHTML = '<p style="color: red;">Erreur lors du chargement des mots. Veuillez réessayer plus tard.</p>';
+        });
 });
