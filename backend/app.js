@@ -22,17 +22,17 @@ app.get('/', (req, res) => {
 
 // Fonction de synthèse vocale
 async function generateAudio(text) {
-   const client = new textToSpeech.TextToSpeechClient({
-    keyFilename: './key.json' // Tu dois créer un fichier key.json avec la clé de ton API Google Cloud
-  });
-  const request = {
-    input: {text: text},
-    voice: {languageCode: 'de-DE', ssmlGender: 'MALE'}, // 'fr-FR' pour Français
-    audioConfig: {audioEncoding: 'MP3'},
-  };
-  const [response] = await client.synthesizeSpeech(request);
-  const audioData = Buffer.from(response.audioContent, 'base64').toString('base64');
-  return `data:audio/mp3;base64,${audioData}`; // On renvoie un dataURI
+    const client = new textToSpeech.TextToSpeechClient({
+        keyFilename: './key.json' // Tu dois créer un fichier key.json avec la clé de ton API Google Cloud
+    });
+    const request = {
+        input: {text: text},
+        voice: {languageCode: 'de-DE', ssmlGender: 'MALE'}, // 'fr-FR' pour Français
+        audioConfig: {audioEncoding: 'MP3'},
+    };
+    const [response] = await client.synthesizeSpeech(request);
+    const audioData = Buffer.from(response.audioContent, 'base64').toString('base64');
+    return `data:audio/mp3;base64,${audioData}`; // On renvoie un dataURI
 }
 
 
@@ -40,5 +40,5 @@ app.locals.generateAudio = generateAudio;
 
 
 app.listen(port, () => {
-  console.log(`Serveur démarré sur http://localhost:${port}`);
+    console.log(`Serveur démarré sur http://localhost:${port}`);
 });
