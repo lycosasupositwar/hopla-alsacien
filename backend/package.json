@@ -1,14 +1,13 @@
 {
-  "name": "hopla-alsacien-backend",
+  "name": "cie-lab-backend",
   "version": "1.0.0",
-  "description": "Backend pour l'application Hopla Alsacien",
-  "main": "app.js",
+  "description": "Backend for CIE LAB 3D visualization",
+  "main": "server.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "@google-cloud/text-to-speech": "^4.2.1"
+    "express": "^4.17.1",
+    "cors": "^2.8.5"
   }
 }
