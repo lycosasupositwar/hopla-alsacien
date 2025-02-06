@@ -1,16 +1,21 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hopla! Alsacien</title>
+    <title>CIE LAB 3D Space</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-    <h1>Apprendre l'Alsacien, c'est "Hopla" !</h1>
-    <div id="mots-container">
-        <!-- Les mots alsaciens seront affichés ici -->
+    <div id="container"></div>
+    <div id="form">
+        <input type="number" id="l" placeholder="L">
+        <input type="number" id="a" placeholder="a">
+        <input type="number" id="b" placeholder="b">
+        <input type="text" id="text" placeholder="Text">
+        <button onclick="addPoint()">Add Point</button>
     </div>
-    <script src="script.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
