@@ -2,8 +2,8 @@
 FROM node:14 AS build
 WORKDIR /app
 
-# Copier uniquement les fichiers nécessaires pour installer les dépendances
-COPY package.json package-lock.json ./
+# Copier uniquement package.json
+COPY package.json ./
 RUN npm install --production
 
 # Copier le reste de l'application
