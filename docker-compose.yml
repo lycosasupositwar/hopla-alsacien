@@ -1,19 +1,19 @@
 services:
-  app:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+  backend:
+    build: ./backend
     ports:
       - "3000:3000"
-    restart: always
-    container_name: hopla-alsacien-app
+    networks:
+      - cie-lab-network
+
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile-frontend
+    build: ./frontend
     ports:
-      - "8080:80"
-    restart: always
-    container_name: hopla-alsacien-frontend
+      - "80:80"
     depends_on:
-      - app
+      - backend
+    networks:
+      - cie-lab-network
+
+networks:
+  cie-lab-network:
