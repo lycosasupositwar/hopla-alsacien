@@ -1,19 +1,26 @@
+version: '3'
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     networks:
       - cie-lab-network
+    restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "80:80"
     depends_on:
       - backend
     networks:
       - cie-lab-network
+    restart: unless-stopped
 
 networks:
   cie-lab-network:
