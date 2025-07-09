@@ -1,15 +1,6 @@
 services:
-  metallobox:
-    build: .
-    container_name: metallobox-app
-    volumes:
-      - ./data:/app/data
-      - ./exports:/app/exports
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    environment:
-      - DISPLAY=host.docker.internal:0
-      - QT_X11_NO_MITSHM=1
-    ports:
-      - "8080:8080"
-    stdin_open: true
-    tty: true
+  test:
+    build:
+      context: .
+      dockerfile: test.dockerfile
+    command: python -c "import numpy, cv2, matplotlib; print('Test successful')"
