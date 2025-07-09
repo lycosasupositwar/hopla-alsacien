@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 
-# Install system dependencies
+# Update package list and install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
-    libxrender-dev \
+    libxrender1 \
     libfontconfig1 \
     libice6 \
     libxcomposite1 \
@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libxkbcommon-x11-0 \
     libxcb-xinerama0 \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -40,7 +41,6 @@ RUN mkdir -p /app/data /app/exports
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV QT_X11_NO_MITSHM=1
-ENV DISPLAY=:99
 
 # Expose port
 EXPOSE 8080
