@@ -1,8 +1,8 @@
-PyQt5==5.15.9
-opencv-python-headless==4.8.1.78
+PyQt5==5.15.7
+opencv-python-headless==4.7.1.72
 numpy==1.24.3
 scipy==1.10.1
 matplotlib==3.7.1
-pandas==2.0.3
+pandas==1.5.3
 openpyxl==3.1.2
 Pillow==9.5.0
