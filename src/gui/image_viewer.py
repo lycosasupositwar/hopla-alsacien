@@ -1,153 +1,299 @@
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+                           QScrollArea, QPushButton, QSlider, QComboBox,
+                           QSpinBox, QGroupBox)
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen
 import cv2
 import numpy as np
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QScrollArea, QPushButton, QSlider, QCheckBox)
-from PyQt5.QtCore import Qt, QPoint, pyqtSignal
-from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen, QColor
 
 class ImageViewer(QWidget):
-    point_clicked = pyqtSignal(QPoint)
+    image_clicked = pyqtSignal(int, int)  # Signal pour clic sur l'image
+    zoom_changed = pyqtSignal(float)      # Signal pour changement de zoom
     
     def __init__(self):
         super().__init__()
         self.original_image = None
-        self.display_image = None
-        self.grain_contours = None
-        self.phase_map = None
-        self.scale_factor = 1.0
-        self.manual_correction_enabled = False
-        
-        self.init_ui()
-        
-    def init_ui(self):
+        self.processed_image = None
+        self.overlay_image = None
+        self.current_pixmap = None
+        self.zoom_factor = 1.0
+        self.setup_ui()
+    
+    def setup_ui(self):
         layout = QVBoxLayout()
         
-        # Controls
+        # Contrôles de visualisation
+        controls_group = QGroupBox("Contrôles de visualisation")
         controls_layout = QHBoxLayout()
         
-        self.zoom_in_btn = QPushButton("Zoom +")
-        self.zoom_in_btn.clicked.connect(self.zoom_in)
+        # Sélecteur de mode d'affichage
+        controls_layout.addWidget(QLabel("Mode:"))
+        self.display_mode_combo = QComboBox()
+        self.display_mode_combo.addItems(["Original", "Traité", "Superposition"])
+        self.display_mode_combo.currentTextChanged.connect(self.update_display)
+        controls_layout.addWidget(self.display_mode_combo)
         
-        self.zoom_out_btn = QPushButton("Zoom -")
-        self.zoom_out_btn.clicked.connect(self.zoom_out)
+        # Contrôle de zoom
+        controls_layout.addWidget(QLabel("Zoom:"))
+        self.zoom_slider = QSlider(Qt.Horizontal)
+        self.zoom_slider.setRange(10, 500)  # 10% à 500%
+        self.zoom_slider.setValue(100)
+        self.zoom_slider.valueChanged.connect(self.on_zoom_changed)
+        controls_layout.addWidget(self.zoom_slider)
         
-        self.reset_zoom_btn = QPushButton("Reset")
-        self.reset_zoom_btn.clicked.connect(self.reset_zoom)
+        self.zoom_label = QLabel("100%")
+        controls_layout.addWidget(self.zoom_label)
         
-        self.show_grains_cb = QCheckBox("Afficher grains")
-        self.show_grains_cb.setChecked(True)
-        self.show_grains_cb.stateChanged.connect(self.update_display)
+        # Boutons de zoom
+        zoom_fit_btn = QPushButton("Ajuster")
+        zoom_fit_btn.clicked.connect(self.zoom_to_fit)
+        controls_layout.addWidget(zoom_fit_btn)
         
-        self.show_phases_cb = QCheckBox("Afficher phases")
-        self.show_phases_cb.setChecked(True)
-        self.show_phases_cb.stateChanged.connect(self.update_display)
+        zoom_100_btn = QPushButton("100%")
+        zoom_100_btn.clicked.connect(self.zoom_to_100)
+        controls_layout.addWidget(zoom_100_btn)
         
-        controls_layout.addWidget(self.zoom_in_btn)
-        controls_layout.addWidget(self.zoom_out_btn)
-        controls_layout.addWidget(self.reset_zoom_btn)
-        controls_layout.addStretch()
-        controls_layout.addWidget(self.show_grains_cb)
-        controls_layout.addWidget(self.show_phases_cb)
+        controls_group.setLayout(controls_layout)
+        layout.addWidget(controls_group)
         
-        # Image display
+        # Zone d'affichage de l'image
         self.scroll_area = QScrollArea()
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setStyleSheet("border: 1px solid gray")
-        self.image_label.mousePressEvent = self.mouse_press_event
+        self.image_label.setMinimumSize(400, 300)
+        self.image_label.mousePressEvent = self.on_image_click
         
         self.scroll_area.setWidget(self.image_label)
         self.scroll_area.setWidgetResizable(True)
-        
-        layout.addLayout(controls_layout)
         layout.addWidget(self.scroll_area)
         
+        # Informations sur l'image
+        self.info_label = QLabel("Aucune image chargée")
+        self.info_label.setStyleSheet("padding: 5px; background-color: #f0f0f0; border: 1px solid #ccc;")
+        layout.addWidget(self.info_label)
+        
         self.setLayout(layout)
-        
+    
     def load_image(self, image_path):
-        self.original_image = cv2.imread(image_path)
-        self.display_image = self.original_image.copy()
-        self.grain_contours = None
-        self.phase_map = None
-        self.update_display()
+        """Charge une image depuis un fichier"""
+        try:
+            self.original_image = cv2.imread(image_path)
+            if self.original_image is None:
+                raise ValueError("Impossible de charger l'image")
+            
+            # Conversion BGR vers RGB pour l'affichage
+            self.original_image = cv2.cvtColor(self.original_image, cv2.COLOR_BGR2RGB)
+            self.processed_image = None
+            self.overlay_image = None
+            
+            self.update_display()
+            self.update_info()
+            
+        except Exception as e:
+            print(f"Erreur lors du chargement de l'image: {str(e)}")
+    
+    def set_image(self, image):
+        """Définit l'image directement (numpy array)"""
+        if image is None:
+            return
         
-    def overlay_grains(self, grain_analysis):
-        if 'contours' in grain_analysis:
-            self.grain_contours = grain_analysis['contours']
+        try:
+            # Copie de l'image
+            self.original_image = image.copy()
+            
+            # Conversion si nécessaire
+            if len(image.shape) == 3 and image.shape[2] == 3:
+                # Supposer que c'est en BGR, convertir en RGB
+                if np.max(image) > 1.0:  # Image en 0-255
+                    self.original_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            
+            self.processed_image = None
+            self.overlay_image = None
+            
+            self.update_display()
+            self.update_info()
+            
+        except Exception as e:
+            print(f"Erreur lors de la définition de l'image: {str(e)}")
+    
+    def set_processed_image(self, image):
+        """Définit l'image traitée"""
+        if image is None:
+            return
+        
+        try:
+            self.processed_image = image.copy()
+            
+            # Assurer que l'image est en RGB
+            if len(image.shape) == 2:
+                self.processed_image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+            elif len(image.shape) == 3 and image.shape[2] == 3:
+                # Vérifier si c'est BGR et convertir
+                if np.max(image) > 1.0:
+                    self.processed_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            
             self.update_display()
             
-    def overlay_phases(self, phase_analysis):
-        if 'phase_map' in phase_analysis:
-            self.phase_map = phase_analysis['phase_map']
+        except Exception as e:
+            print(f"Erreur lors de la définition de l'image traitée: {str(e)}")
+    
+    def set_overlay_image(self, image):
+        """Définit l'image de superposition"""
+        if image is None:
+            return
+        
+        try:
+            self.overlay_image = image.copy()
+            
+            # Assurer que l'image est en RGB
+            if len(image.shape) == 2:
+                self.overlay_image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+            elif len(image.shape) == 3 and image.shape[2] == 3:
+                if np.max(image) > 1.0:
+                    self.overlay_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            
             self.update_display()
             
+        except Exception as e:
+            print(f"Erreur lors de la définition de l'image de superposition: {str(e)}")
+    
     def update_display(self):
+        """Met à jour l'affichage selon le mode sélectionné"""
+        current_mode = self.display_mode_combo.currentText()
+        
+        display_image = None
+        
+        if current_mode == "Original" and self.original_image is not None:
+            display_image = self.original_image
+        elif current_mode == "Traité" and self.processed_image is not None:
+            display_image = self.processed_image
+        elif current_mode == "Superposition" and self.overlay_image is not None:
+            display_image = self.overlay_image
+        elif self.original_image is not None:
+            display_image = self.original_image
+        
+        if display_image is not None:
+            self.display_numpy_image(display_image)
+        else:
+            self.image_label.setText("Aucune image disponible pour ce mode")
+            self.image_label.setPixmap(QPixmap())
+    
+    def display_numpy_image(self, image):
+        """Affiche une image numpy dans le label"""
+        try:
+            # Normalisation de l'image
+            if image.dtype != np.uint8:
+                if np.max(image) <= 1.0:
+                    image = (image * 255).astype(np.uint8)
+                else:
+                    image = np.clip(image, 0, 255).astype(np.uint8)
+            
+            # Conversion en QImage
+            if len(image.shape) == 2:
+                height, width = image.shape
+                bytes_per_line = width
+                q_image = QImage(image.data, width, height, bytes_per_line, QImage.Format_Grayscale8)
+            else:
+                height, width, channels = image.shape
+                bytes_per_line = channels * width
+                q_image = QImage(image.data, width, height, bytes_per_line, QImage.Format_RGB888)
+            
+            # Création du pixmap avec zoom
+            pixmap = QPixmap.fromImage(q_image)
+            scaled_pixmap = pixmap.scaled(
+                pixmap.size() * self.zoom_factor,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            )
+            
+            self.current_pixmap = scaled_pixmap
+            self.image_label.setPixmap(scaled_pixmap)
+            self.image_label.resize(scaled_pixmap.size())
+            
+        except Exception as e:
+            print(f"Erreur lors de l'affichage de l'image: {str(e)}")
+            self.image_label.setText("Erreur d'affichage")
+    
+    def on_zoom_changed(self, value):
+        """Gère le changement de zoom"""
+        self.zoom_factor = value / 100.0
+        self.zoom_label.setText(f"{value}%")
+        self.update_display()
+        self.zoom_changed.emit(self.zoom_factor)
+    
+    def zoom_to_fit(self):
+        """Ajuste le zoom pour faire tenir l'image"""
         if self.original_image is None:
             return
-            
-        # Start with original image
-        display_img = self.original_image.copy()
         
-        # Add phase overlay
-        if self.phase_map is not None and self.show_phases_cb.isChecked():
-            # Blend phase map with original image
-            alpha = 0.3
-            display_img = cv2.addWeighted(display_img, 1-alpha, self.phase_map, alpha, 0)
-            
-        # Add grain contours
-        if self.grain_contours is not None and self.show_grains_cb.isChecked():
-            cv2.drawContours(display_img, self.grain_contours, -1, (0, 255, 0), 2)
-            
-        # Convert to QImage and display
-        self.display_image = display_img
-        self.show_image()
+        # Calcul du facteur de zoom pour ajuster à la taille disponible
+        available_size = self.scroll_area.size()
+        image_size = self.original_image.shape[:2]
         
-    def show_image(self):
-        if self.display_image is None:
+        zoom_x = available_size.width() / image_size[1]
+        zoom_y = available_size.height() / image_size[0]
+        zoom_factor = min(zoom_x, zoom_y, 1.0)  # Ne pas agrandir au-delà de 100%
+        
+        zoom_percent = int(zoom_factor * 100)
+        self.zoom_slider.setValue(zoom_percent)
+    
+    def zoom_to_100(self):
+        """Remet le zoom à 100%"""
+        self.zoom_slider.setValue(100)
+    
+    def on_image_click(self, event):
+        """Gère le clic sur l'image"""
+        if self.current_pixmap is None:
             return
-            
-        # Convert BGR to RGB
-        rgb_image = cv2.cvtColor(self.display_image, cv2.COLOR_BGR2RGB)
         
-        # Create QImage
-        h, w, ch = rgb_image.shape
-        bytes_per_line = ch * w
-        qt_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        # Conversion des coordonnées de l'affichage vers l'image originale
+        click_x = event.x() / self.zoom_factor
+        click_y = event.y() / self.zoom_factor
         
-        # Scale image
-        scaled_image = qt_image.scaled(
-            int(w * self.scale_factor), 
-            int(h * self.scale_factor), 
-            Qt.KeepAspectRatio, 
-            Qt.SmoothTransformation
-        )
+        self.image_clicked.emit(int(click_x), int(click_y))
+    
+    def update_info(self):
+        """Met à jour les informations sur l'image"""
+        if self.original_image is None:
+            self.info_label.setText("Aucune image chargée")
+            return
         
-        # Convert to pixmap and display
-        pixmap = QPixmap.fromImage(scaled_image)
-        self.image_label.setPixmap(pixmap)
-        self.image_label.resize(pixmap.size())
+        shape = self.original_image.shape
+        if len(shape) == 2:
+            info_text = f"Dimensions: {shape[1]}x{shape[0]} (Niveaux de gris)"
+        else:
+            info_text = f"Dimensions: {shape[1]}x{shape[0]}x{shape[2]} (Couleur)"
         
-    def zoom_in(self):
-        self.scale_factor *= 1.25
-        self.show_image()
+        info_text += f" | Zoom: {self.zoom_factor:.1f}x"
         
-    def zoom_out(self):
-        self.scale_factor /= 1.25
-        self.show_image()
+        if self.processed_image is not None:
+            info_text += " | Image traitée disponible"
         
-    def reset_zoom(self):
-        self.scale_factor = 1.0
-        self.show_image()
+        if self.overlay_image is not None:
+            info_text += " | Superposition disponible"
         
-    def enable_manual_correction(self, enabled):
-        self.manual_correction_enabled = enabled
+        self.info_label.setText(info_text)
+    
+    def get_current_image(self):
+        """Retourne l'image actuellement affichée"""
+        current_mode = self.display_mode_combo.currentText()
         
-    def mouse_press_event(self, event):
-        if self.manual_correction_enabled and event.button() == Qt.LeftButton:
-            # Convert click position to image coordinates
-            pos = event.pos()
-            scaled_pos = QPoint(
-                int(pos.x() / self.scale_factor),
-                int(pos.y() / self.scale_factor)
-            )
-            self.point_clicked.emit(scaled_pos)
+        if current_mode == "Original":
+            return self.original_image
+        elif current_mode == "Traité":
+            return self.processed_image
+        elif current_mode == "Superposition":
+            return self.overlay_image
+        else:
+            return self.original_image
+    
+    def clear_images(self):
+        """Efface toutes les images"""
+        self.original_image = None
+        self.processed_image = None
+        self.overlay_image = None
+        self.current_pixmap = None
+        self.image_label.clear()
+        self.image_label.setText("Aucune image chargée")
+        self.update_info()
