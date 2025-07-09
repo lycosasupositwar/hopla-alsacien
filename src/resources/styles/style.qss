@@ -1,0 +1,116 @@
+/* MetalloBox Style Sheet */
+
+QMainWindow {
+    background-color: #f0f0f0;
+}
+
+QMenuBar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #cccccc;
+}
+
+QMenuBar::item {
+    padding: 5px 10px;
+    margin: 2px;
+}
+
+QMenuBar::item:selected {
+    background-color: #e0e0e0;
+}
+
+QGroupBox {
+    font-weight: bold;
+    border: 2px solid #cccccc;
+    border-radius: 5px;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+}
+
+QPushButton {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 2px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #45a049;
+}
+
+QPushButton:pressed {
+    background-color: #3d8b40;
+}
+
+QPushButton:disabled {
+    background-color: #cccccc;
+    color: #666666;
+}
+
+QSlider::groove:horizontal {
+    border: 1px solid #999999;
+    height: 8px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
+    margin: 2px 0;
+}
+
+QSlider::handle:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+    border: 1px solid #5c5c5c;
+    width: 18px;
+    margin: -2px 0;
+    border-radius: 3px;
+}
+
+QTableWidget {
+    gridline-color: #cccccc;
+    background-color: white;
+    alternate-background-color: #f9f9f9;
+}
+
+QTableWidget::item {
+    padding: 5px;
+}
+
+QTabWidget::pane {
+    border: 1px solid #cccccc;
+    background-color: white;
+}
+
+QTabBar::tab {
+    background-color: #e0e0e0;
+    padding: 8px 16px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: white;
+    border-bottom: 2px solid #4CAF50;
+}
+
+QStatusBar {
+    background-color: #f0f0f0;
+    border-top: 1px solid #cccccc;
+}
+
+QProgressBar {
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #4CAF50;
+    border-radius: 3px;
+}
