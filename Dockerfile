@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.9-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -26,19 +26,10 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Upgrade pip and install build tools
-RUN pip install --upgrade pip setuptools wheel
-
-# Install Python packages in order of dependency
-RUN pip install --no-cache-dir numpy==1.24.3
-RUN pip install --no-cache-dir opencv-python-headless==4.8.1.78
-RUN pip install --no-cache-dir matplotlib==3.7.1
-RUN pip install --no-cache-dir scipy==1.10.1
-RUN pip install --no-cache-dir scikit-image==0.20.0
-RUN pip install --no-cache-dir pandas==2.0.3
-RUN pip install --no-cache-dir Pillow==10.0.0
-RUN pip install --no-cache-dir openpyxl==3.1.2
-RUN pip install --no-cache-dir PyQt5==5.15.9
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
@@ -51,6 +42,8 @@ ENV PYTHONPATH=/app
 ENV QT_X11_NO_MITSHM=1
 ENV DISPLAY=:99
 
+# Expose port
 EXPOSE 8080
 
+# Run the application
 CMD ["python", "src/main.py"]
