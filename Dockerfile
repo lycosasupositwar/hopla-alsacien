@@ -1,33 +1,24 @@
-FROM python:3.8-slim
+FROM python:3.9
 
-# Install system dependencies including Qt dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libxext6 \
-    libsm6 \
-    libxrender1 \
-    libfontconfig1 \
-    && rm -rf /var/lib/apt/lists/*
-
+# L'image python:3.9 (non-slim) contient déjà la plupart des dépendances système
 WORKDIR /app
 
-# Copy requirements
+# Copy requirements first for better caching
 COPY requirements.txt .
 
-# Update pip and install wheel
+# Update pip and install Python packages
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-
-# Install packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY src/ ./src/
 
+# Environment variables
 ENV PYTHONPATH=/app
 ENV QT_X11_NO_MITSHM=1
 
+# Expose port
 EXPOSE 8080
+
+# Run the application
 CMD ["python", "src/main.py"]
