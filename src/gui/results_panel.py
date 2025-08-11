@@ -115,12 +115,11 @@ class ResultsPanel(QWidget):
         stats_text = f"""
         Résultats d'analyse des grains:
         
-        Nombre total de grains: {stats['grain_count']}
-        Diamètre moyen: {stats['mean_diameter']:.2f} pixels
-        Écart-type: {stats['std_diameter']:.2f} pixels
-        Surface moyenne: {stats['mean_area']:.2f} pixels²
-        Surface totale: {stats['total_area']:.2f} pixels²
-        Numéro de grain ASTM: {stats['astm_grain_number']:.2f}
+        Nombre de grains: {stats.get('grain_count', 'N/A')}
+        Surface moyenne: {stats.get('mean_area', 0):.2f} pixels²
+        Écart-type (surface): {stats.get('std_area', 0):.2f} pixels²
+        Surface totale: {stats.get('total_area', 0):.2f} pixels²
+        Indice de grain ASTM (G): {stats.get('astm_grain_size', 'N/A')}
         """
         
         self.stats_text.setText(stats_text)

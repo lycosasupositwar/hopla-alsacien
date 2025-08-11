@@ -43,9 +43,9 @@ class ToolsPanel(QWidget):
         threshold_layout = QHBoxLayout()
         threshold_layout.addWidget(QLabel("Seuil:"))
         self.threshold_slider = QSlider(Qt.Horizontal)
-        self.threshold_slider.setRange(1, 100)
-        self.threshold_slider.setValue(50)
-        self.threshold_label = QLabel("50")
+        self.threshold_slider.setRange(0, 255)
+        self.threshold_slider.setValue(128)
+        self.threshold_label = QLabel("128")
         self.threshold_slider.valueChanged.connect(
             lambda v: self.threshold_label.setText(str(v))
         )
