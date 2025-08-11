@@ -1,24 +1,35 @@
-FROM python:3.9
+# ---- Builder Stage ----
+# This stage installs dependencies into a virtual environment.
+FROM python:3.9 as builder
 
-# L'image python:3.9 (non-slim) contient déjà la plupart des dépendances système
+# Set the working directory
 WORKDIR /app
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Create a virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Update pip and install Python packages
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+# Copy requirements and install them into the venv
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# ---- Final Stage ----
+# This stage copies the application and the venv from the builder.
+FROM python:3.9-slim-bullseye
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the virtual environment from the builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Copy the application code
 COPY src/ ./src/
 
-# Environment variables
+# Set the path to use the venv's python
+ENV PATH="/opt/venv/bin:$PATH"
 ENV PYTHONPATH=/app
 ENV QT_X11_NO_MITSHM=1
-
-# Expose port
-EXPOSE 8080
 
 # Run the application
 CMD ["python", "src/main.py"]
