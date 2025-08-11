@@ -31,6 +31,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libegl1-mesa \
     libxkbcommon-x11-0 \
     libxcb1-dev \
+    libxcb-xinerama0 \
+    libxcb-shape0 \
+    libxcb-randr0 \
+    libxcb-render0 \
+    libxcb-image0 \
+    libxcb-keysyms1 \
+    libxcb-icccm4 \
     # User-requested
     libpq-dev \
     # Clean up apt cache to save space
