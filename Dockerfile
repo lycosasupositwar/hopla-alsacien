@@ -38,6 +38,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxcb-image0 \
     libxcb-keysyms1 \
     libxcb-icccm4 \
+    libxcb-render-util0 \
+    libxcb-xfixes0 \
+    libdbus-1-3 \
     # User-requested
     libpq-dev \
     # Clean up apt cache to save space
