@@ -54,4 +54,4 @@ ENV QT_X11_NO_MITSHM=1
 EXPOSE 8080
 
 # Run the application
-CMD ["python", "src/main.py"]
+CMD ["python", "-m", "src.main"]

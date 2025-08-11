@@ -6,5 +6,5 @@ if command -v docker-compose &> /dev/null; then
 else
     echo "Docker Compose non trouvé. Installation de Python..."
     pip install -r requirements.txt
-    python src/main.py
+    python -m src.main
 fi
