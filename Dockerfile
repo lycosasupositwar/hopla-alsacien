@@ -1,16 +1,43 @@
 FROM python:3.9
 
-# L'image python:3.9 (non-slim) contient déjà la plupart des dépendances système
+# Set the working directory
 WORKDIR /app
+
+# Install a comprehensive set of system dependencies to ensure pip install succeeds
+# This will result in a larger image, but is more robust.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # For general compilation
+    build-essential \
+    cmake \
+    pkg-config \
+    # For numpy/scipy
+    gfortran \
+    libopenblas-dev \
+    liblapack-dev \
+    # For Pillow/OpenCV image formats
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    # For OpenCV video formats and general utilities
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libv4l-dev \
+    libxvidcore-dev \
+    libx264-dev \
+    libgtk-3-dev \
+    # For PyQt5 GUI
+    libgl1-mesa-glx \
+    libegl1-mesa \
+    libxkbcommon-x11-0 \
+    libxcb1-dev \
+    # User-requested
+    libpq-dev \
+    # Clean up apt cache to save space
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
-
-# Install system dependencies requested by user
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Update pip and install Python packages
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
