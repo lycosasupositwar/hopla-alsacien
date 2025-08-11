@@ -44,7 +44,7 @@ RUN apk add --no-cache \
     libjpeg-turbo \
     tiff \
     libpng \
-    qt5-libs
+    qt5-qtbase
 
 # Set the working directory
 WORKDIR /app
