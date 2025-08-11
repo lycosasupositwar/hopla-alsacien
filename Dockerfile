@@ -2,6 +2,11 @@
 # This stage installs dependencies into a virtual environment.
 FROM python:3.9 as builder
 
+# Install system-level dependencies required by pip packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0
+
 # Set the working directory
 WORKDIR /app
 
@@ -16,6 +21,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ---- Final Stage ----
 # This stage copies the application and the venv from the builder.
 FROM python:3.9-slim-bullseye
+
+# Install system-level runtime dependencies and clean up apt cache
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
