@@ -6,6 +6,12 @@ WORKDIR /app
 # Copy requirements first for better caching
 COPY requirements.txt .
 
+# Install system dependencies requested by user
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Update pip and install Python packages
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
