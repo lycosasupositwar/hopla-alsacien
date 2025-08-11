@@ -1,69 +1,35 @@
 # ---- Builder Stage ----
-# This stage installs build-time dependencies and compiles the Python packages.
-FROM python:3.9-alpine as builder
-
-# Enable the community and testing repositories for more packages
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN apk update
-
-# Install build-time system dependencies for the Python packages
-# This includes compilers, headers, and development libraries.
-RUN apk add --no-cache \
-    build-base \
-    cmake \
-    linux-headers \
-    gfortran \
-    openblas-dev@community \
-    freetype-dev \
-    pkgconfig \
-    jpeg-dev \
-    zlib-dev \
-    tiff-dev \
-    libpng-dev \
-    qt5-qtbase-dev@community
-
-# Create a virtual environment for clean dependency management
-WORKDIR /app
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy and install Python packages into the virtual environment
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# ---- Final Stage ----
-# This stage creates the final, lightweight image.
-FROM python:3.9-alpine
-
-# Enable the community and testing repositories for runtime packages
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN apk update
-
-# Install only the run-time system dependencies
-RUN apk add --no-cache \
-    openblas@community \
-    freetype \
-    libjpeg-turbo \
-    tiff \
-    libpng \
-    qt5-qtbase@community
+# This stage installs dependencies into a virtual environment.
+FROM python:3.9 as builder
 
 # Set the working directory
 WORKDIR /app
 
-# Copy the virtual environment (with compiled packages) from the builder stage
+# Create a virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements and install them into the venv
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ---- Final Stage ----
+# This stage copies the application and the venv from the builder.
+FROM python:3.9-slim-bullseye
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the virtual environment from the builder stage
 COPY --from=builder /opt/venv /opt/venv
 
 # Copy the application code
 COPY src/ ./src/
 
-# Set environment variables for the application to run
+# Set the path to use the venv's python
 ENV PATH="/opt/venv/bin:$PATH"
 ENV PYTHONPATH=/app
-# This is often needed for running Qt apps in Docker
-ENV QT_QPA_PLATFORM=offscreen
+ENV QT_X11_NO_MITSHM=1
 
 # Run the application
 CMD ["python", "src/main.py"]
