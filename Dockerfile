@@ -2,8 +2,10 @@
 # This stage installs build-time dependencies and compiles the Python packages.
 FROM python:3.9-alpine as builder
 
-# Enable the community repository for more packages
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+# Enable the community and testing repositories for more packages
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+RUN apk update
 
 # Install build-time system dependencies for the Python packages
 # This includes compilers, headers, and development libraries.
@@ -12,14 +14,14 @@ RUN apk add --no-cache \
     cmake \
     linux-headers \
     gfortran \
-    openblas-dev \
+    openblas-dev@community \
     freetype-dev \
     pkgconfig \
     jpeg-dev \
     zlib-dev \
     tiff-dev \
     libpng-dev \
-    qt5-qtbase-dev
+    qt5-qtbase-dev@community
 
 # Create a virtual environment for clean dependency management
 WORKDIR /app
@@ -34,17 +36,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # This stage creates the final, lightweight image.
 FROM python:3.9-alpine
 
-# Enable the community repository for runtime packages
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+# Enable the community and testing repositories for runtime packages
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+RUN apk update
 
 # Install only the run-time system dependencies
 RUN apk add --no-cache \
-    openblas \
+    openblas@community \
     freetype \
     libjpeg-turbo \
     tiff \
     libpng \
-    qt5-qtbase
+    qt5-qtbase@community
 
 # Set the working directory
 WORKDIR /app
