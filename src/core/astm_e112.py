@@ -2,91 +2,51 @@ import numpy as np
 import math
 
 class ASTM_E112:
-    """Implementation of ASTM E112 standard for grain size measurement"""
-    
+    """
+    Provides methods for calculating ASTM grain size numbers based on the
+    ASTM E112 standard.
+
+    Currently, only the planimetric method is implemented.
+    """
+
     def __init__(self):
-        # ASTM E112 constants
-        self.ASTM_CONSTANT = 2.0954  # Constant for circular grain approximation
+        pass
+
+    def planimetric_method(self, total_grains: int, total_area_pixels: float, scale_pixels_per_mm: float) -> float:
+        """
+        Calculates the ASTM grain size number (G) using the planimetric method.
+
+        This method relates the number of grains per unit area to the ASTM
+        grain size number. The calculation is performed at 1x magnification.
+
+        Args:
+            total_grains (int): The total number of grains counted in the area.
+            total_area_pixels (float): The total area of the grains in pixels.
+            scale_pixels_per_mm (float): The scale of the image in pixels per millimeter.
+                                         This is a critical parameter for accurate measurement.
+
+        Returns:
+            float: The calculated ASTM grain size number (G). Returns 0 if the input is invalid.
+        """
+        if not total_grains > 0 or not total_area_pixels > 0 or not scale_pixels_per_mm > 0:
+            return 0.0
+
+        # Convert the area from pixels^2 to mm^2
+        # (scale_pixels_per_mm)^2 = pixels^2 / mm^2
+        # area_mm2 = area_pixels / (pixels^2 / mm^2)
+        total_area_mm2 = total_area_pixels / (scale_pixels_per_mm ** 2)
+
+        # Calculate NA: number of grains per square millimeter at 1x magnification
+        if total_area_mm2 == 0:
+            return 0.0
         
-    def calculate_grain_size(self, grains):
-        """Calculate ASTM grain size number"""
-        if not grains:
-            return None, 0
-            
-        # Calculate mean grain diameter
-        diameters = [grain.get('equivalent_diameter', 0) for grain in grains]
-        mean_diameter = np.mean(diameters)
+        grains_per_mm2_at_1x = total_grains / total_area_mm2
+
+        # The ASTM grain size number G is defined by: NA = 2^(G - 1)
+        # Solving for G: G = log2(NA) + 1
+        if grains_per_mm2_at_1x <= 0:
+            return 0.0
+
+        astm_number = math.log2(grains_per_mm2_at_1x) + 1.0
         
-        # Calculate ASTM grain size number using intercept method
-        astm_number = self.intercept_method(grains)
-        
-        return astm_number, mean_diameter
-        
-    def intercept_method(self, grains):
-        """Calculate grain size using intercept method"""
-        if not grains:
-            return None
-            
-        # Calculate average grain diameter
-        diameters = [grain.get('equivalent_diameter', 0) for grain in grains]
-        mean_diameter = np.mean(diameters)
-        
-        # Convert to mm (assuming input is in micrometers)
-        mean_diameter_mm = mean_diameter / 1000.0
-        
-        # Calculate ASTM grain size number
-        # G = -6.64 * log10(d) - 12.6
-        # where d is the mean diameter in mm
-        if mean_diameter_mm > 0:
-            astm_number = -6.64 * math.log10(mean_diameter_mm) - 12.6
-        else:
-            astm_number = 0
-            
-        return round(astm_number, 1)
-        
-    def planimetric_method(self, grains, magnification=100):
-        """Calculate grain size using planimetric method"""
-        if not grains:
-            return None
-            
-        # Calculate number of grains per unit area
-        total_area = sum(grain.get('area', 0) for grain in grains)
-        n_grains = len(grains)
-        
-        # Grains per square mm at 100x magnification
-        grains_per_mm2 = (n_grains / total_area) * (magnification / 100) ** 2
-        
-        # Calculate ASTM grain size number
-        # N = 2^(G-1) where N is grains per square mm at 100x
-        if grains_per_mm2 > 0:
-            astm_number = math.log2(grains_per_mm2) + 1
-        else:
-            astm_number = 0
-            
-        return round(astm_number, 1)
-        
-    def comparison_method(self, grains):
-        """Calculate grain size using comparison method"""
-        # This would typically involve comparing with standard charts
-        # For now, we'll use a simplified approach based on grain count
-        n_grains = len(grains)
-        
-        # Approximate mapping based on typical grain counts
-        if n_grains < 10:
-            return 1
-        elif n_grains < 25:
-            return 2
-        elif n_grains < 50:
-            return 3
-        elif n_grains < 100:
-            return 4
-        elif n_grains < 200:
-            return 5
-        elif n_grains < 400:
-            return 6
-        elif n_grains < 800:
-            return 7
-        elif n_grains < 1600:
-            return 8
-        else:
-            return 9
+        return round(astm_number, 2)
