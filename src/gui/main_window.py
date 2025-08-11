@@ -8,10 +8,11 @@ from PyQt5.QtGui import QKeySequence, QIcon
 from .image_viewer import ImageViewer
 from .results_panel import ResultsPanel
 from .tools_panel import ToolsPanel
-from core.grain_analyzer import GrainAnalyzer
-from core.phase_analyzer import PhaseAnalyzer
-from utils.file_handler import FileHandler
-from utils.export_utils import ExportUtils
+from ..core.grain_analyzer import GrainAnalyzer
+from ..core.phase_analyzer import PhaseAnalyzer
+from ..core.astm_e112 import ASTM_E112
+from ..utils.file_handler import FileHandler
+from ..utils.export_utils import ExportUtils
 
 class AnalysisThread(QThread):
     finished = pyqtSignal(dict)
@@ -28,26 +29,40 @@ class AnalysisThread(QThread):
             import cv2
             image = cv2.imread(self.image_path)
             
+            # Instantiate calculators
+            astm_calculator = ASTM_E112()
+
             if self.analysis_type == "grain":
-                analyzer = GrainAnalyzer()
+                analyzer = GrainAnalyzer(astm_calculator)
                 self.progress.emit(50)
-                results = analyzer.analyze_grains(image)
+                results = analyzer.analyze_grains(
+                    image,
+                    scale_pixels_per_mm=self.parameters['scale'],
+                    threshold_value=self.parameters['threshold'],
+                    min_grain_size=self.parameters['min_size']
+                )
                 self.progress.emit(100)
                 self.finished.emit({"grain_analysis": results})
                 
             elif self.analysis_type == "phase":
+                # Assuming PhaseAnalyzer might be refactored similarly in the future
                 analyzer = PhaseAnalyzer()
                 self.progress.emit(50)
-                results = analyzer.analyze_phases(image)
+                results = analyzer.analyze_phases(image) # This would also need params
                 self.progress.emit(100)
                 self.finished.emit({"phase_analysis": results})
                 
             elif self.analysis_type == "combined":
-                grain_analyzer = GrainAnalyzer()
+                grain_analyzer = GrainAnalyzer(astm_calculator)
                 phase_analyzer = PhaseAnalyzer()
                 
                 self.progress.emit(25)
-                grain_results = grain_analyzer.analyze_grains(image)
+                grain_results = grain_analyzer.analyze_grains(
+                    image,
+                    scale_pixels_per_mm=self.parameters['scale'],
+                    threshold_value=self.parameters['threshold'],
+                    min_grain_size=self.parameters['min_size']
+                )
                 self.progress.emit(75)
                 phase_results = phase_analyzer.analyze_phases(image)
                 self.progress.emit(100)

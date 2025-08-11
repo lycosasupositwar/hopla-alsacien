@@ -60,6 +60,14 @@ class ToolsPanel(QWidget):
         self.min_size_spin.setValue(100)
         self.min_size_spin.setSuffix(" px")
         min_size_layout.addWidget(self.min_size_spin)
+
+        # Scale
+        scale_layout = QHBoxLayout()
+        scale_layout.addWidget(QLabel("Échelle (px/mm):"))
+        self.scale_spin = QSpinBox()
+        self.scale_spin.setRange(1, 10000)
+        self.scale_spin.setValue(100)
+        scale_layout.addWidget(self.scale_spin)
         
         # ASTM standard
         astm_layout = QHBoxLayout()
@@ -70,6 +78,7 @@ class ToolsPanel(QWidget):
         
         params_layout.addLayout(threshold_layout)
         params_layout.addLayout(min_size_layout)
+        params_layout.addLayout(scale_layout)
         params_layout.addLayout(astm_layout)
         params_group.setLayout(params_layout)
         
@@ -100,5 +109,6 @@ class ToolsPanel(QWidget):
         return {
             'threshold': self.threshold_slider.value(),
             'min_size': self.min_size_spin.value(),
+            'scale': self.scale_spin.value(),
             'astm_standard': self.astm_combo.currentText()
         }
