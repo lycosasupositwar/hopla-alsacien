@@ -88,12 +88,16 @@ def analyze_image():
 
     # --- Assemble Response ---
 
-    # Edge Stats
+    # Edge Stats & Geometry
     edge_lengths = [d['length'] for _, _, d in pruned_graph.edges(data=True)]
+    edge_geometries = [
+        {'coords': np.fliplr(d['coords']).tolist()} for _, _, d in pruned_graph.edges(data=True) if 'coords' in d
+    ]
     edge_stats = EdgeStats(
         n_nodes=pruned_graph.number_of_nodes(),
         n_edges=pruned_graph.number_of_edges(),
-        mean_edge_length_px=np.mean(edge_lengths) if edge_lengths else 0
+        mean_edge_length_px=np.mean(edge_lengths) if edge_lengths else 0,
+        edges=edge_geometries
     )
 
     # Create Overlays
@@ -109,10 +113,21 @@ def analyze_image():
 
     timings["total_s"] = time.time() - start_total_time
 
+    # Prepare motifs for JSON serialization
+    serializable_motifs = []
+    for motif in motifs:
+        serializable_motifs.append({
+            "id": motif["id"],
+            "type": motif["type"],
+            "length_px": motif["length_px"],
+            "geometry": {"coordinates": list(motif["geometry"].coords)}
+        })
+
     final_result = AnalysisResult(
         metrics=metrics,
         intersections=intersections,
         edges_stats=edge_stats,
+        motifs=serializable_motifs,
         overlays=overlays,
         warnings=warnings,
         timings=Timings(**timings),

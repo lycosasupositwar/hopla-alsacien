@@ -48,6 +48,7 @@ class EdgeStats(BaseModel):
     n_nodes: int
     n_edges: int
     mean_edge_length_px: float
+    edges: List[Dict[str, Any]] # To hold coordinates for rendering
 
 
 class Overlays(BaseModel):
@@ -70,6 +71,7 @@ class AnalysisResult(BaseModel):
     metrics: Metrics
     intersections: List[Intersection]
     edges_stats: EdgeStats
+    motifs: List[Dict[str, Any]] # Add motifs for rendering
     overlays: Overlays
     warnings: List[str]
     timings: Timings
