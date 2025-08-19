@@ -1,8 +1,0 @@
-PyQt5
-opencv-python-headless
-numpy
-scipy
-matplotlib
-pandas
-openpyxl
-Pillow
