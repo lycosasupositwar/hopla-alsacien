@@ -32,7 +32,7 @@ ANALYSIS_RESULT=$(curl -s -X POST \
   -F "image=@./examples/input/synthetic_voronoi_standard.png" \
   -F "pixel_size_um=1.0" \
   -F "params={}" \
-  http://localhost:8000/api/analyze)
+  http://localhost:8050/api/analyze)
 
 if [ -z "$ANALYSIS_RESULT" ] || [[ "$ANALYSIS_RESULT" == *"error"* ]]; then
     echo "Error: Analysis API call failed."
@@ -50,7 +50,7 @@ echo "Step 4: Generating PDF report from the analysis result..."
 curl -s -X POST \
   -H "Content-Type: application/json" \
   --data "@./examples/output/analysis_result.json" \
-  http://localhost:8000/api/report \
+  http://localhost:8050/api/report \
   --output examples/output/demo_report.pdf
 
 if [ $? -ne 0 ] || [ ! -s "examples/output/demo_report.pdf" ]; then
