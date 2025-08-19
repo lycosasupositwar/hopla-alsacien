@@ -28,8 +28,8 @@ RUN npm install -g serve
 COPY --from=build /app/dist ./dist
 
 # Expose the port the server will run on
-EXPOSE 5173
+EXPOSE 8080
 
 # The command to run the server
 # The -s flag is important; it serves the app on all routes, which is needed for client-side routing
-CMD ["serve", "-s", "dist", "-l", "5173"]
+CMD ["serve", "-s", "dist", "-l", "8080"]
