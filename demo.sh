@@ -63,7 +63,7 @@ echo "PDF report saved to examples/output/demo_report.pdf"
 
 echo -e "\n--- Demo Complete! ---"
 echo "You can now:"
-echo "1. Access the frontend UI at http://localhost:5173"
+echo "1. Access the frontend UI at http://localhost:8080"
 echo "2. View the generated report at examples/output/demo_report.pdf"
 echo "3. View the raw JSON result at examples/output/analysis_result.json"
 echo -e "\nTo stop the application, run:"
