@@ -1,0 +1,23 @@
+# Backend
+flask>=2.2
+Flask-Cors
+gunicorn
+pydantic
+python-multipart
+
+# Image Processing & Scientific Computing
+numpy
+scipy
+scikit-image
+skan
+scikit-learn
+opencv-python-headless
+Pillow
+shapely
+
+# Reporting
+weasyprint
+Jinja2
+
+# Testing
+pytest
