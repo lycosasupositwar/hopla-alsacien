@@ -26,12 +26,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Make port 8000 available to the world outside this container
-EXPOSE 8000
+EXPOSE 8050
 
 # Define environment variables
 ENV MODULE_NAME="app.main"
 ENV VARIABLE_NAME="app"
-ENV GUNICORN_CMD_ARGS="--workers 4 --bind 0.0.0.0:8000"
+ENV GUNICORN_CMD_ARGS="--workers 4 --bind 0.0.0.0:8050"
 
 # Run app.main:app when the container launches
 CMD exec gunicorn "$MODULE_NAME:$VARIABLE_NAME" $GUNICORN_CMD_ARGS
