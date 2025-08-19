@@ -3,21 +3,30 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { QueryClient, QueryClientProvider, useMutation } from "@tanstack/react-query"
 import { analyzeImage, getPdfReport } from './lib/api';
 
-// Manually created shadcn/ui components
-import { Button } from './components/ui/button';
-import { ModeToggle } from './components/theme-toggle';
+// UI Components
+import { Button } from '@/components/ui/button';
+import { ModeToggle } from '@/components/theme-toggle';
 
-// App components
-import ImageUploader from "./components/ImageUploader"
-import CalibrationPanel from "./components/CalibrationPanel"
-import PreprocessPanel from "./components/PreprocessPanel"
-import SkeletonCanvas from "./components/SkeletonCanvas"
-import ResultsTable from "./components/ResultsTable"
-import HistogramCard from "./components/HistogramCard"
+// App Components
+import ImageUploader from "@/components/ImageUploader"
+import CalibrationPanel from "@/components/CalibrationPanel"
+import PreprocessPanel from "@/components/PreprocessPanel"
+import SkeletonCanvas from "@/components/SkeletonCanvas"
+import ResultsTable from "@/components/ResultsTable"
+import HistogramCard from "@/components/HistogramCard"
 
 const queryClient = new QueryClient();
 
-type AnalysisResult = { [key: string]: any };
+// Define a more specific type for the result to improve type safety
+type AnalysisResult = {
+  image_id: string;
+  metrics: any;
+  intersections: any[];
+  edges_stats: { edges: any[] };
+  motifs: any[];
+  // other fields...
+} | null;
+
 
 function MainApp() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -27,7 +36,7 @@ function MainApp() {
     adaptive_block_size: 101,
     adaptive_offset: 10,
   });
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult>(null);
 
   const analysisMutation = useMutation({
     mutationFn: () => {
@@ -37,7 +46,7 @@ function MainApp() {
     onSuccess: (data) => {
       setAnalysisResult(data);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       alert(`Analysis failed: ${error.message}`);
     },
   });
@@ -48,7 +57,6 @@ function MainApp() {
       return getPdfReport(analysisResult);
     },
     onSuccess: (data) => {
-      // Create a URL for the blob
       const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement('a');
       link.href = url;
@@ -58,21 +66,13 @@ function MainApp() {
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       alert(`Report generation failed: ${error.message}`);
     }
   });
 
-  const handleAnalyzeClick = () => {
-    analysisMutation.mutate();
-  };
-
-  const handleReportClick = () => {
-    reportMutation.mutate();
-  }
-
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="grain-size-analysis-theme">
       <div className="min-h-screen bg-background text-foreground">
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container flex h-14 items-center">
@@ -86,7 +86,7 @@ function MainApp() {
         <main className="container mx-auto p-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1 space-y-6">
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg space-y-4">
                 <ImageUploader onFileSelect={setImageFile} />
                 <CalibrationPanel onPixelSizeChange={setPixelSize} />
               </div>
@@ -97,7 +97,7 @@ function MainApp() {
                 <h2 className="text-lg font-semibold mb-2">3. Analysis</h2>
                 <Button
                   className="w-full"
-                  onClick={handleAnalyzeClick}
+                  onClick={() => analysisMutation.mutate()}
                   disabled={!imageFile || analysisMutation.isPending}
                 >
                   {analysisMutation.isPending ? 'Analyzing...' : 'Analyze'}
@@ -109,12 +109,11 @@ function MainApp() {
                <div className="p-4 border rounded-lg">
                  <SkeletonCanvas
                     sourceImage={imageFile || undefined}
-                    // Pass the correct nested data to the canvas
-                    analysisResult={{
-                      skeleton: analysisResult?.edges_stats,
-                      motifs: analysisResult?.motifs,
-                      intersections: analysisResult?.intersections
-                    }}
+                    analysisResult={analysisResult ? {
+                      skeleton: analysisResult.edges_stats,
+                      motifs: analysisResult.motifs,
+                      intersections: analysisResult.intersections
+                    } : undefined}
                   />
                </div>
                <div className="p-4 border rounded-lg space-y-4">
@@ -126,7 +125,7 @@ function MainApp() {
                     variant="outline"
                     className="w-full"
                     disabled={!analysisResult || reportMutation.isPending}
-                    onClick={handleReportClick}
+                    onClick={() => reportMutation.mutate()}
                 >
                     {reportMutation.isPending ? 'Generating Report...' : 'Download PDF Report'}
                 </Button>
@@ -139,6 +138,7 @@ function MainApp() {
   );
 }
 
+// Final wrapper
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
