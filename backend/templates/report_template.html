@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analysis Report - {{ result.image_id }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        h1, h2 { color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        .container { display: block; }
+        .main-image { text-align: center; margin-bottom: 20px; }
+        .main-image img { max-width: 80%; border: 1px solid #ddd; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .section { margin-top: 30px; }
+        .warnings { color: #d9534f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Grain Size Analysis Report</h1>
+        <p><strong>Image ID:</strong> {{ result.image_id }}</p>
+
+        <div class="section">
+            <h2>Annotated Microstructure</h2>
+            <div class="main-image">
+                <img src="{{ result.overlays.annotated_png_base64 }}" alt="Annotated Image">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Key Metrics</h2>
+            <table>
+                <tr><th>Metric</th><th>Value</th><th>Unit</th></tr>
+                <tr><td>ASTM Grain Size (G)</td><td>{{ "%.3f"|format(result.metrics.G) }}</td><td>-</td></tr>
+                <tr><td>Mean Intercept Length (ℓ)</td><td>{{ "%.2f"|format(result.metrics.ell_um) }}</td><td>µm</td></tr>
+                <tr><td>Mean Intercept Length (ℓ)</td><td>{{ "%.5f"|format(result.metrics.ell_mm) }}</td><td>mm</td></tr>
+                <tr><td>Weighted Intersections (N_int)</td><td>{{ "%.1f"|format(result.metrics.N_int) }}</td><td>-</td></tr>
+                <tr><td>Total Test Pattern Length (L)</td><td>{{ "%.3f"|format(result.metrics.L_mm) }}</td><td>mm</td></tr>
+                <tr><td>Grain Density (N_AE)</td><td>{{ "%.2f"|format(result.metrics.N_AE) }}</td><td>grains/mm² at 100x</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Analysis Parameters</h2>
+            <table>
+                {% for key, value in result.params_used.items() %}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td>
+                        {% if value is mapping %}
+                            {{ value | tojson }}
+                        {% else %}
+                            {{ value }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        {% if result.warnings %}
+        <div class="section">
+            <h2>Warnings</h2>
+            <ul class="warnings">
+                {% for warning in result.warnings %}
+                <li>{{ warning }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="section">
+            <h2>Execution Timings</h2>
+            <table>
+                <tr><th>Step</th><th>Time (s)</th></tr>
+                {% for key, value in result.timings.items() %}
+                <tr><td>{{ key }}</td><td>{{ "%.3f"|format(value) }}</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>
