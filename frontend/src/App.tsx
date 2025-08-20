@@ -14,6 +14,7 @@ import PreprocessPanel from "@/components/PreprocessPanel"
 import SkeletonCanvas from "@/components/SkeletonCanvas"
 import ResultsTable from "@/components/ResultsTable"
 import HistogramCard from "@/components/HistogramCard"
+import DebugPanel from "@/components/DebugPanel"
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,10 @@ type AnalysisResult = {
   intersections: any[];
   edges_stats: { edges: any[] };
   motifs: any[];
+  debug_overlays?: {
+    binary_image_base64: string;
+    skeleton_image_base64: string;
+  };
   // other fields...
 } | null;
 
@@ -162,6 +167,7 @@ function MainApp() {
                     } : undefined}
                   />
                </div>
+               <DebugPanel debugData={analysisResult?.debug_overlays} />
                <div className="p-4 border rounded-lg space-y-4">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <ResultsTable results={analysisResult?.metrics} />

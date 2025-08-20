@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from flask import Blueprint, request, jsonify
 
-from ..schemas.models import AnalysisParameters, AnalysisResult, EdgeStats, Timings, Overlays
+from ..schemas.models import AnalysisParameters, AnalysisResult, EdgeStats, Timings, Overlays, DebugOverlays
 from ..utils.image_utils import read_image_from_bytes, encode_image_to_base64, create_overlay_image
 from ..processing.preprocess import preprocess_image
 from ..processing.skeleton import skeletonize_image, estimate_border_width
@@ -64,10 +64,17 @@ def analyze_image():
         )
         timings["preprocess_s"] = time.time() - start_time
 
+        # Encode for debugging
+        debug_binary_base64 = encode_image_to_base64(binary_image)
+
         # 2. Skeletonization & Border Width
         start_time = time.time()
         skeleton = skeletonize_image(binary_image)
         timings["skeleton_s"] = time.time() - start_time
+
+        # Encode for debugging
+        # The skeleton is boolean, so we convert to uint8 for encoding
+        debug_skeleton_base64 = encode_image_to_base64((skeleton * 255).astype(np.uint8))
 
         start_time = time.time()
         border_width = estimate_border_width(binary_image, skeleton)
@@ -101,6 +108,12 @@ def analyze_image():
         }), 500
 
     # --- Assemble Response ---
+
+    # Create debug overlays object
+    debug_overlays = DebugOverlays(
+        binary_image_base64=debug_binary_base64,
+        skeleton_image_base64=debug_skeleton_base64,
+    )
 
     # Edge Stats & Geometry
     edge_lengths = [d['length'] for _, _, d in pruned_graph.edges(data=True)]
@@ -145,7 +158,8 @@ def analyze_image():
         overlays=overlays,
         warnings=warnings,
         timings=Timings(**timings),
-        params_used=params
+        params_used=params,
+        debug_overlays=debug_overlays
     )
 
     return jsonify(final_result.model_dump())

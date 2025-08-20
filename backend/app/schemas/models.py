@@ -66,6 +66,14 @@ class Timings(BaseModel):
     total_s: float
 
 
+class DebugOverlays(BaseModel):
+    """
+    A model to hold base64 encoded images for debugging the pipeline.
+    """
+    binary_image_base64: str
+    skeleton_image_base64: str
+
+
 class AnalysisResult(BaseModel):
     image_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     metrics: Metrics
@@ -76,3 +84,4 @@ class AnalysisResult(BaseModel):
     warnings: List[str]
     timings: Timings
     params_used: AnalysisParameters
+    debug_overlays: Optional[DebugOverlays] = None
