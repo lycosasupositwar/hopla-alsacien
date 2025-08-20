@@ -35,9 +35,9 @@ function MainApp() {
     gaussian_sigma: 1.0,
     adaptive_block_size: 101,
     adaptive_offset: 2,
-    // Add other preprocess params with defaults if they don't exist
     morph_open_kernel: 3,
     area_opening_min_size_px: 500,
+    skeleton_prune_ratio: 0.5,
   });
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);

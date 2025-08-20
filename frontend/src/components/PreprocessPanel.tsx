@@ -17,8 +17,9 @@ const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChang
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-2">2. Preprocessing Parameters</h3>
-      <div className="space-y-4">
+      <h3 className="text-lg font-semibold mb-2">2. Analysis Parameters</h3>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-muted-foreground">Preprocessing</p>
         <div>
           <label htmlFor="gaussian_sigma" className="flex justify-between text-sm font-medium">
             <span>Gaussian Sigma</span>
@@ -67,6 +68,22 @@ const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChang
       >
         {isPreviewing ? 'Loading Preview...' : 'Preview Preprocessing'}
       </Button>
+      <div className="space-y-2 mt-4 pt-4 border-t">
+        <p className="text-sm font-medium text-muted-foreground">Skeletonization</p>
+        <div>
+          <label htmlFor="skeleton_prune_ratio" className="flex justify-between text-sm font-medium">
+            <span>Skeleton Prune Ratio</span>
+            <span>{params.skeleton_prune_ratio}</span>
+          </label>
+          <input
+            type="range" id="skeleton_prune_ratio"
+            min="0" max="1" step="0.05"
+            value={params.skeleton_prune_ratio}
+            onChange={(e) => handleParamChange('skeleton_prune_ratio', parseFloat(e.target.value))}
+            className="w-full"
+         />
+        </div>
+      </div>
     </div>
   );
 };
