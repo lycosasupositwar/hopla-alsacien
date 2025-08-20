@@ -70,3 +70,32 @@ export const getPdfReport = async (analysisResult: any) => {
         throw new Error('An unexpected error occurred.');
     }
 }
+
+/**
+ * Requests a preview of the preprocessing step from the backend.
+ * @param imageFile The image file to preprocess.
+ * @param params The preprocessing parameters.
+ * @returns An object containing the base64-encoded preview image.
+ */
+export const getPreprocessingPreview = async (
+  imageFile: File,
+  params: AnalysisParams
+) => {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  formData.append('params', JSON.stringify(params));
+
+  try {
+    const response = await apiClient.post('/preview/preprocess', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data; // Should be { preview_image_base64: string }
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || 'An unknown error occurred during preview.');
+    }
+    throw new Error('An unexpected error occurred.');
+  }
+};

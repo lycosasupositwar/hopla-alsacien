@@ -34,10 +34,11 @@ interface AnalysisResult {
 
 interface SkeletonCanvasProps {
     sourceImage?: File;
+    previewImage?: string | null;
     analysisResult?: AnalysisResult | null; // The full analysis result from the backend
 }
 
-const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisResult }) => {
+const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, previewImage, analysisResult }) => {
     const [image, setImage] = useState<HTMLImageElement | null>(null);
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
     const [stageScale, setStageScale] = useState(1);
@@ -48,16 +49,20 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
     });
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Effect to load the source image and reset the view
+    // Effect to load the source or preview image and reset the view
     useEffect(() => {
-        if (!sourceImage) {
+        const img = new window.Image();
+        let objectUrl: string | null = null;
+
+        if (previewImage) {
+            img.src = previewImage;
+        } else if (sourceImage) {
+            objectUrl = URL.createObjectURL(sourceImage);
+            img.src = objectUrl;
+        } else {
             setImage(null);
             return;
         }
-
-        const img = new window.Image();
-        const objectUrl = URL.createObjectURL(sourceImage);
-        img.src = objectUrl;
 
         img.onload = () => {
             setImage(img);
@@ -72,11 +77,13 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
             }
         };
 
-        // Cleanup function to revoke the object URL
+        // Cleanup function to revoke the object URL if it was created
         return () => {
-            URL.revokeObjectURL(objectUrl);
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
         };
-    }, [sourceImage]);
+    }, [sourceImage, previewImage]);
 
     const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
         e.evt.preventDefault();
@@ -114,7 +121,7 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
     return (
         <div>
             <div ref={containerRef} className="w-full h-[500px] bg-muted rounded-lg overflow-hidden border flex items-center justify-center">
-                {sourceImage && image && containerSize.width > 0 ? (
+                {(sourceImage || previewImage) && image && containerSize.width > 0 ? (
                      <Stage
                         width={containerSize.width}
                         height={containerSize.height}
@@ -130,31 +137,36 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
                             <KonvaImage image={image} />
                         </Layer>
 
-                        <Layer visible={layerVisibility.skeleton}>
-                            {analysisResult?.skeleton.edges.map((edge, i) => (
-                                <Line key={`skel-${i}`} points={edge.coords.flat()} stroke="green" strokeWidth={1 / stageScale} />
-                            ))}
-                        </Layer>
+                        {/* Analysis overlays should only be visible when not in preview mode */}
+                        {!previewImage && (
+                            <>
+                                <Layer visible={layerVisibility.skeleton}>
+                                    {analysisResult?.skeleton.edges.map((edge, i) => (
+                                        <Line key={`skel-${i}`} points={edge.coords.flat()} stroke="green" strokeWidth={1 / stageScale} />
+                                    ))}
+                                </Layer>
 
-                        <Layer visible={layerVisibility.motifs}>
-                             {analysisResult?.motifs.map((motif, i) => (
-                                <Line key={`motif-${i}`} points={motif.geometry.coordinates.flat()} stroke="blue" strokeWidth={2 / stageScale} />
-                            ))}
-                        </Layer>
+                                <Layer visible={layerVisibility.motifs}>
+                                    {analysisResult?.motifs.map((motif, i) => (
+                                        <Line key={`motif-${i}`} points={motif.geometry.coordinates.flat()} stroke="blue" strokeWidth={2 / stageScale} />
+                                    ))}
+                                </Layer>
 
-                        <Layer visible={layerVisibility.intersections}>
-                            {analysisResult?.intersections.map((inter) => (
-                                <Circle
-                                    key={`inter-${inter.id}`}
-                                    x={inter.x}
-                                    y={inter.y}
-                                    radius={5 / stageScale}
-                                    fill={intersectionColorMap[inter.type]}
-                                    stroke="black"
-                                    strokeWidth={1 / stageScale}
-                                />
-                            ))}
-                        </Layer>
+                                <Layer visible={layerVisibility.intersections}>
+                                    {analysisResult?.intersections.map((inter) => (
+                                        <Circle
+                                            key={`inter-${inter.id}`}
+                                            x={inter.x}
+                                            y={inter.y}
+                                            radius={5 / stageScale}
+                                            fill={intersectionColorMap[inter.type]}
+                                            stroke="black"
+                                            strokeWidth={1 / stageScale}
+                                        />
+                                    ))}
+                                </Layer>
+                            </>
+                        )}
                     </Stage>
                 ) : (
                     <div className="text-center text-muted-foreground p-4">
