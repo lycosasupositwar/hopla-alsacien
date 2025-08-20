@@ -5,51 +5,62 @@ import networkx as nx
 
 def build_graph_from_skeleton(skeleton: np.ndarray):
     """
-    Builds a graph representation from a skeleton image.
-    Uses skan to analyze the skeleton and extract branches and nodes.
+    Builds a graph representation from a skeleton image using skan and networkx.
+    This version uses a more robust method of graph creation from a pandas edgelist.
     """
     skel_bool = skeleton.astype(bool)
+    # The `skan.Skeleton` object is the main interface to the skeleton data
     graph_obj = Skeleton(skel_bool)
-    summary = summarize(graph_obj, separator='_')
+    # The `summarize` function returns a pandas DataFrame with branch information
+    summary = summarize(graph_obj)
 
-    G = nx.Graph()
+    # If no branches are found, return an empty graph
+    if summary.empty:
+        return nx.Graph(), summary
 
-    # Get node degrees directly from the Skeleton object, which is reliable
-    node_degrees = graph_obj.degrees
+    # Create the graph directly from the pandas DataFrame edgelist
+    # This is more robust than manual iteration
+    G = nx.from_pandas_edgelist(
+        summary,
+        source='node-id-src',
+        target='node-id-dst',
+        edge_attr=['branch-distance', 'skeleton-id'],
+    )
 
-    # Add all nodes first by iterating through the branches
-    for _, branch in summary.iterrows():
-        for node_prefix in ['src', 'dst']:
-            node_id = int(branch[f'node_id_{node_prefix}'])
+    # Add node attributes (like position and kind) after creation
+    for node_id in G.nodes:
+        # The degree of the node in the context of the whole skeleton
+        degree = graph_obj.degrees[node_id]
+        kind = 'path' # Default kind
+        if degree == 1:
+            kind = 'endpoint'
+        elif degree >= 3:
+            kind = 'junction'
+        G.nodes[node_id]['kind'] = kind
 
-            if not G.has_node(node_id):
-                # Get the degree of the current node
-                degree = node_degrees[node_id]
+        # Find the node's coordinates from its first appearance in the summary
+        # Check if it appears as a source node
+        src_rows = summary[summary['node-id-src'] == node_id]
+        if not src_rows.empty:
+            row = src_rows.iloc[0]
+            # skan provides coords as (row, col), which is (y, x)
+            G.nodes[node_id]['pos'] = (row['coord-src-1'], row['coord-src-0'])
+            continue
 
-                # Determine node type
-                if degree == 1:
-                    kind = 'endpoint'
-                elif degree >= 3:
-                    kind = 'junction'
-                else: # degree 2
-                    kind = 'path'
+        # If not found as a source, check as a destination node
+        dst_rows = summary[summary['node-id-dst'] == node_id]
+        if not dst_rows.empty:
+            row = dst_rows.iloc[0]
+            G.nodes[node_id]['pos'] = (row['coord-dst-1'], row['coord-dst-0'])
 
-                G.add_node(
-                    node_id,
-                    pos=(branch[f'coord_{node_prefix}_1'], branch[f'coord_{node_prefix}_0']), # (x, y)
-                    kind=kind
-                )
-
-    # Add edges
-    for _, edge in summary.iterrows():
-        u, v = int(edge['node_id_src']), int(edge['node_id_dst'])
-        if u != v:
-            G.add_edge(
-                u, v,
-                id=int(edge['skeleton_id']),
-                length=edge['branch_distance'],
-                coords=graph_obj.path_coordinates(int(edge['skeleton_id']))
-            )
+    # Add path coordinates and rename 'branch-distance' to 'length' for consistency
+    for u, v, data in G.edges(data=True):
+        skeleton_id = data['skeleton-id']
+        path_coords = graph_obj.path_coordinates(skeleton_id)
+        G[u][v]['coords'] = path_coords
+        G[u][v]['length'] = data['branch-distance']
+        # The original 'branch-distance' and 'skeleton-id' keys can be removed if desired
+        # but leaving them is harmless.
 
     return G, summary
 
