@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from "@/components/theme-provider"
 import { QueryClient, QueryClientProvider, useMutation } from "@tanstack/react-query"
-import { analyzeImage, getPdfReport } from './lib/api';
+import { analyzeImage, getPdfReport, getPreprocessingPreview } from './lib/api';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -34,28 +34,54 @@ function MainApp() {
   const [params, setParams] = useState({
     gaussian_sigma: 1.0,
     adaptive_block_size: 101,
-    adaptive_offset: 10,
+    adaptive_offset: 2,
+    // Add other preprocess params with defaults if they don't exist
+    morph_open_kernel: 3,
+    area_opening_min_size_px: 500,
   });
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const analysisMutation = useMutation({
     mutationFn: () => {
       if (!imageFile) throw new Error("Please select an image file.");
-      // Clear previous results and errors when starting a new analysis
       setAnalysisResult(null);
       setAnalysisError(null);
+      setPreviewImage(null); // Clear preview when running full analysis
       return analyzeImage(imageFile, params, pixelSize);
     },
     onSuccess: (data) => {
       setAnalysisResult(data);
-      setAnalysisError(null); // Clear any previous errors on success
+      setAnalysisError(null);
     },
     onError: (error: Error) => {
       setAnalysisError(error.message);
-      setAnalysisResult(null); // Clear results on error
+      setAnalysisResult(null);
     },
   });
+
+  const previewMutation = useMutation({
+    mutationFn: () => {
+      if (!imageFile) throw new Error("Please select an image to preview.");
+      setAnalysisError(null);
+      return getPreprocessingPreview(imageFile, params);
+    },
+    onSuccess: (data) => {
+      setPreviewImage(`data:image/png;base64,${data.preview_image_base64}`);
+    },
+    onError: (error: Error) => {
+      setAnalysisError(error.message);
+      setPreviewImage(null);
+    },
+  });
+
+  const handleFileSelect = (file: File | null) => {
+    setImageFile(file);
+    setAnalysisResult(null);
+    setAnalysisError(null);
+    setPreviewImage(null);
+  };
 
   const reportMutation = useMutation({
     mutationFn: () => {
@@ -93,11 +119,17 @@ function MainApp() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1 space-y-6">
               <div className="p-4 border rounded-lg space-y-4">
-                <ImageUploader onFileSelect={setImageFile} />
+                <ImageUploader onFileSelect={handleFileSelect} />
                 <CalibrationPanel onPixelSizeChange={setPixelSize} />
               </div>
               <div className="p-4 border rounded-lg">
-                <PreprocessPanel params={params} onParamsChange={setParams} />
+                <PreprocessPanel
+                  params={params}
+                  onParamsChange={setParams}
+                  onPreview={() => previewMutation.mutate()}
+                  isImageLoaded={!!imageFile}
+                  isPreviewing={previewMutation.isPending}
+                />
               </div>
                <div className="p-4 border rounded-lg">
                 <h2 className="text-lg font-semibold mb-2">3. Analysis</h2>
@@ -121,6 +153,7 @@ function MainApp() {
                <div className="p-4 border rounded-lg">
                  <SkeletonCanvas
                     sourceImage={imageFile || undefined}
+                    previewImage={previewImage}
                     analysisResult={analysisResult ? {
                       skeleton: analysisResult.edges_stats,
                       motifs: analysisResult.motifs,

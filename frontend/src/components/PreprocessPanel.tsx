@@ -1,11 +1,15 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface PreprocessPanelProps {
     params: { [key: string]: any };
     onParamsChange: (newParams: { [key: string]: any }) => void;
+    onPreview: () => void;
+    isImageLoaded: boolean;
+    isPreviewing: boolean;
 }
 
-const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChange }) => {
+const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChange, onPreview, isImageLoaded, isPreviewing }) => {
 
     const handleParamChange = (key: string, value: number) => {
         onParamsChange({ ...params, [key]: value });
@@ -13,7 +17,7 @@ const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChang
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-2">Preprocessing Parameters</h3>
+      <h3 className="text-lg font-semibold mb-2">2. Preprocessing Parameters</h3>
       <div className="space-y-4">
         <div>
           <label htmlFor="gaussian_sigma" className="flex justify-between text-sm font-medium">
@@ -55,6 +59,14 @@ const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChang
          />
         </div>
       </div>
+      <Button
+        variant="outline"
+        className="w-full mt-4"
+        onClick={onPreview}
+        disabled={!isImageLoaded || isPreviewing}
+      >
+        {isPreviewing ? 'Loading Preview...' : 'Preview Preprocessing'}
+      </Button>
     </div>
   );
 };

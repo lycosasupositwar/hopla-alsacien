@@ -8,7 +8,7 @@ def preprocess_image(
     image: np.ndarray,
     gaussian_sigma: float = 1.0,
     adaptive_block_size: int = 101,
-    adaptive_offset: int = 10,
+    adaptive_offset: int = 2,
     morph_open_kernel: int = 3,
     area_opening_min_size_px: int = 500,
 ) -> np.ndarray:
