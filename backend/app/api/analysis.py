@@ -43,48 +43,56 @@ def analyze_image():
         return jsonify({"error": "pixel_size_um must be positive"}), 400
 
     # --- Full Processing Pipeline ---
-    timings = {}
+    try:
+        timings = {}
 
-    # 1. Preprocessing
-    start_time = time.time()
-    binary_image = preprocess_image(
-        original_image,
-        params.gaussian_sigma,
-        params.adaptive_block_size,
-        params.adaptive_offset,
-        params.morph_open_kernel,
-        params.area_opening_min_size_px
-    )
-    timings["preprocess_s"] = time.time() - start_time
+        # 1. Preprocessing
+        start_time = time.time()
+        binary_image = preprocess_image(
+            original_image,
+            params.gaussian_sigma,
+            params.adaptive_block_size,
+            params.adaptive_offset,
+            params.morph_open_kernel,
+            params.area_opening_min_size_px
+        )
+        timings["preprocess_s"] = time.time() - start_time
 
-    # 2. Skeletonization & Border Width
-    start_time = time.time()
-    skeleton = skeletonize_image(binary_image)
-    timings["skeleton_s"] = time.time() - start_time
+        # 2. Skeletonization & Border Width
+        start_time = time.time()
+        skeleton = skeletonize_image(binary_image)
+        timings["skeleton_s"] = time.time() - start_time
 
-    start_time = time.time()
-    border_width = estimate_border_width(binary_image, skeleton)
-    timings["border_width_s"] = time.time() - start_time
+        start_time = time.time()
+        border_width = estimate_border_width(binary_image, skeleton)
+        timings["border_width_s"] = time.time() - start_time
 
-    # 3. Graph Construction and Pruning
-    start_time = time.time()
-    graph, _ = build_graph_from_skeleton(skeleton)
-    pruned_graph = prune_graph(graph, params.skeleton_prune_ratio)
-    timings["graph_s"] = time.time() - start_time
+        # 3. Graph Construction and Pruning
+        start_time = time.time()
+        graph, _ = build_graph_from_skeleton(skeleton)
+        pruned_graph = prune_graph(graph, params.skeleton_prune_ratio)
+        timings["graph_s"] = time.time() - start_time
 
-    # 4. Motif Generation
-    motifs = generate_motifs(original_image.shape[:2], params.motifs, params.random_seed)
+        # 4. Motif Generation
+        motifs = generate_motifs(original_image.shape[:2], params.motifs, params.random_seed)
 
-    # 5. Intersection Detection
-    start_time = time.time()
-    epsilon = border_width * params.epsilon_factor
-    intersections = detect_and_cluster_intersections(
-        motifs, pruned_graph, epsilon, params.norm_profile
-    )
-    timings["intersections_s"] = time.time() - start_time
+        # 5. Intersection Detection
+        start_time = time.time()
+        epsilon = border_width * params.epsilon_factor
+        intersections = detect_and_cluster_intersections(
+            motifs, pruned_graph, epsilon, params.norm_profile
+        )
+        timings["intersections_s"] = time.time() - start_time
 
-    # 6. Final Metrics Calculation
-    metrics, warnings = compute_final_metrics(motifs, intersections, pixel_size_um)
+        # 6. Final Metrics Calculation
+        metrics, warnings = compute_final_metrics(motifs, intersections, pixel_size_um)
+
+    except Exception as e:
+        # Catch any unexpected errors during the complex processing pipeline
+        # and return a helpful error message.
+        return jsonify({
+            "error": f"An unexpected error occurred during image processing: {str(e)}"
+        }), 500
 
     # --- Assemble Response ---
 

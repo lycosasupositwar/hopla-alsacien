@@ -37,17 +37,23 @@ function MainApp() {
     adaptive_offset: 10,
   });
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   const analysisMutation = useMutation({
     mutationFn: () => {
       if (!imageFile) throw new Error("Please select an image file.");
+      // Clear previous results and errors when starting a new analysis
+      setAnalysisResult(null);
+      setAnalysisError(null);
       return analyzeImage(imageFile, params, pixelSize);
     },
     onSuccess: (data) => {
       setAnalysisResult(data);
+      setAnalysisError(null); // Clear any previous errors on success
     },
     onError: (error: Error) => {
-      alert(`Analysis failed: ${error.message}`);
+      setAnalysisError(error.message);
+      setAnalysisResult(null); // Clear results on error
     },
   });
 
@@ -102,6 +108,12 @@ function MainApp() {
                 >
                   {analysisMutation.isPending ? 'Analyzing...' : 'Analyze'}
                 </Button>
+                {analysisError && (
+                  <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <p className="text-sm font-bold text-destructive">Analysis Failed</p>
+                    <p className="text-sm text-destructive/90">{analysisError}</p>
+                  </div>
+                )}
               </div>
             </div>
 
