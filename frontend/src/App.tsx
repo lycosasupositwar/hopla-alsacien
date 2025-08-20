@@ -68,7 +68,8 @@ function MainApp() {
       return getPreprocessingPreview(imageFile, params);
     },
     onSuccess: (data) => {
-      setPreviewImage(`data:image/png;base64,${data.preview_image_base64}`);
+      // The backend already returns the full data URI string
+      setPreviewImage(data.preview_image_base64);
     },
     onError: (error: Error) => {
       setAnalysisError(error.message);
