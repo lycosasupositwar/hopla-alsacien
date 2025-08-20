@@ -31,12 +31,18 @@ def analyze_image():
         return jsonify({"error": str(e)}), 400
 
     # Load and merge parameters
-    default_params = AnalysisParameters()
     try:
-        user_params = json.loads(request.form.get('params', '{}'))
-        params = default_params.model_copy(update=user_params)
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON in params field"}), 400
+        default_params = AnalysisParameters()
+        user_params_dict = json.loads(request.form.get('params', '{}'))
+
+        # Create a new model instance with updated parameters
+        # This works for both Pydantic v1 and v2
+        updated_params_dict = default_params.dict()
+        updated_params_dict.update(user_params_dict)
+        params = AnalysisParameters(**updated_params_dict)
+
+    except (json.JSONDecodeError, TypeError) as e:
+        return jsonify({"error": f"Invalid parameters: {str(e)}"}), 400
 
     pixel_size_um = float(request.form.get('pixel_size_um', 1.0))
     if pixel_size_um <= 0:
