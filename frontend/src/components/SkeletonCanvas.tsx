@@ -32,9 +32,6 @@ interface AnalysisResult {
 }
 
 
-// A placeholder image for initial display
-const PLACEHOLDER_IMG_URL = "https://via.placeholder.com/800x600.png?text=Upload+an+image+to+start";
-
 interface SkeletonCanvasProps {
     sourceImage?: File;
     analysisResult?: AnalysisResult | null; // The full analysis result from the backend
@@ -51,11 +48,16 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
     });
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Effect to load the image
+    // Effect to load the source image and reset the view
     useEffect(() => {
+        if (!sourceImage) {
+            setImage(null);
+            return;
+        }
+
         const img = new window.Image();
-        const objectUrl = sourceImage ? URL.createObjectURL(sourceImage) : null;
-        img.src = objectUrl || PLACEHOLDER_IMG_URL;
+        const objectUrl = URL.createObjectURL(sourceImage);
+        img.src = objectUrl;
 
         img.onload = () => {
             setImage(img);
@@ -70,9 +72,10 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
             }
         };
 
+        // Cleanup function to revoke the object URL
         return () => {
-            if(objectUrl) URL.revokeObjectURL(objectUrl);
-        }
+            URL.revokeObjectURL(objectUrl);
+        };
     }, [sourceImage]);
 
     const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -110,8 +113,8 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
 
     return (
         <div>
-            <div ref={containerRef} className="w-full h-[500px] bg-muted rounded-lg overflow-hidden border">
-                {containerSize.width > 0 && (
+            <div ref={containerRef} className="w-full h-[500px] bg-muted rounded-lg overflow-hidden border flex items-center justify-center">
+                {sourceImage && image && containerSize.width > 0 ? (
                      <Stage
                         width={containerSize.width}
                         height={containerSize.height}
@@ -124,7 +127,7 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
                         onDragEnd={(e) => setStagePos(e.target.position())}
                     >
                         <Layer>
-                            {image && <KonvaImage image={image} />}
+                            <KonvaImage image={image} />
                         </Layer>
 
                         <Layer visible={layerVisibility.skeleton}>
@@ -153,6 +156,11 @@ const SkeletonCanvas: React.FC<SkeletonCanvasProps> = ({ sourceImage, analysisRe
                             ))}
                         </Layer>
                     </Stage>
+                ) : (
+                    <div className="text-center text-muted-foreground p-4">
+                        <p className="font-semibold">Upload an image to start</p>
+                        <p className="text-sm">The analysis canvas will appear here.</p>
+                    </div>
                 )}
             </div>
             <div className="flex items-center space-x-4 mt-2">
