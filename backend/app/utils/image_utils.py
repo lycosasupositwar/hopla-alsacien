@@ -1,6 +1,7 @@
 import base64
 import io
 import cv2
+import networkx as nx
 import numpy as np
 from PIL import Image
 
@@ -89,3 +90,23 @@ def create_overlay_image(
             cv2.circle(overlay, center, radius=8, color=(0,0,0), thickness=2) # Black outline
 
     return overlay
+
+
+def draw_graph_on_image(graph: nx.Graph, image_shape: tuple) -> np.ndarray:
+    """
+    Draws the edges of a networkx graph onto a blank image.
+    This is useful for debugging the graph structure.
+    """
+    # Create a blank black image with 3 channels
+    image = np.zeros((image_shape[0], image_shape[1], 3), dtype=np.uint8)
+
+    # Iterate through the edges and draw them
+    for _, _, data in graph.edges(data=True):
+        coords = data.get('coords')
+        if coords is not None and len(coords) >= 2:
+            # The `coords` from skan are (row, col) which is (y, x).
+            # cv2.polylines expects points as (x, y), so we need to flip.
+            points = np.fliplr(coords).astype(np.int32).reshape((-1, 1, 2))
+            cv2.polylines(image, [points], isClosed=False, color=(0, 255, 0), thickness=1)
+
+    return image

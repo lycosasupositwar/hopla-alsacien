@@ -6,6 +6,7 @@ import React from 'react';
 interface DebugOverlays {
     binary_image_base64: string;
     skeleton_image_base64: string;
+    pruned_graph_image_base64: string;
 }
 
 interface DebugStats {
@@ -46,9 +47,9 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ debugOverlays, debugStats }) =>
 
             {/* Image Overlays */}
             {debugOverlays && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <h3 className="text-md font-medium text-center mb-2">Preprocessing Result (Binary)</h3>
+                        <h3 className="text-md font-medium text-center mb-2">1. Preprocessing Result</h3>
                         <img
                             src={debugOverlays.binary_image_base64}
                             alt="Preprocessing Result"
@@ -56,10 +57,18 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ debugOverlays, debugStats }) =>
                         />
                     </div>
                     <div>
-                        <h3 className="text-md font-medium text-center mb-2">Raw Skeleton</h3>
+                        <h3 className="text-md font-medium text-center mb-2">2. Raw Skeleton</h3>
                         <img
                             src={debugOverlays.skeleton_image_base64}
                             alt="Raw Skeleton"
+                            className="w-full h-auto border rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <h3 className="text-md font-medium text-center mb-2">3. Final Graph</h3>
+                        <img
+                            src={debugOverlays.pruned_graph_image_base64}
+                            alt="Final Pruned Graph"
                             className="w-full h-auto border rounded-md"
                         />
                     </div>
