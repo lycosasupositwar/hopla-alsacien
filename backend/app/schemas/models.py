@@ -73,6 +73,7 @@ class DebugOverlays(BaseModel):
     binary_image_base64: str
     skeleton_image_base64: str
     pruned_graph_image_base64: str
+    motifs_image_base64: str
 
 
 class DebugStats(BaseModel):
