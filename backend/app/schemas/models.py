@@ -84,8 +84,6 @@ class DebugStats(BaseModel):
     nodes_after_pruning: int
     edges_after_pruning: int
     edge_geometries_count: int
-    edges_before_pruning_coords: Optional[List[str]] = None
-    edges_after_pruning_coords: Optional[List[str]] = None
 
 
 class AnalysisResult(BaseModel):
