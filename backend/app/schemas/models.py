@@ -17,7 +17,6 @@ class AnalysisParameters(BaseModel):
     motifs: Dict[str, Any] = {
         "type": "linear",
         "count": 10,
-        "length_px": 500,
         "orientations": [0]
     }
     random_seed: int = 42
