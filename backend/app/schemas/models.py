@@ -82,6 +82,7 @@ class DebugStats(BaseModel):
     edges_before_pruning: int
     nodes_after_pruning: int
     edges_after_pruning: int
+    edge_geometries_count: int
 
 
 class AnalysisResult(BaseModel):

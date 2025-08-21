@@ -138,6 +138,7 @@ def analyze_image():
     edge_geometries = [
         {'coords': np.fliplr(d['coords']).tolist()} for _, _, d in pruned_graph.edges(data=True) if 'coords' in d
     ]
+    debug_stats.edge_geometries_count = len(edge_geometries)
     edge_stats = EdgeStats(
         n_nodes=pruned_graph.number_of_nodes(),
         n_edges=pruned_graph.number_of_edges(),

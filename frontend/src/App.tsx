@@ -34,6 +34,7 @@ type AnalysisResult = {
     edges_before_pruning: number;
     nodes_after_pruning: number;
     edges_after_pruning: number;
+    edge_geometries_count: number;
   };
   // other fields...
 } | null;
