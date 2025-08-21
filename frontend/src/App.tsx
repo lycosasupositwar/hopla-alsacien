@@ -168,7 +168,7 @@ function MainApp() {
                     sourceImage={imageFile || undefined}
                     previewImage={previewImage}
                     analysisResult={analysisResult ? {
-                      skeleton: { edges: analysisResult.edges_stats.edges },
+                      skeleton: analysisResult.edges_stats,
                       motifs: analysisResult.motifs,
                       intersections: analysisResult.intersections
                     } : undefined}

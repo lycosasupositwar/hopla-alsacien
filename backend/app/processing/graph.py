@@ -69,8 +69,8 @@ def prune_graph(G: nx.Graph, prune_ratio: float):
     if not edge_lengths:
         return G
 
-    mean_edge_length = np.mean(edge_lengths)
-    threshold = prune_ratio * mean_edge_length
+    median_edge_length = np.median(edge_lengths)
+    threshold = prune_ratio * median_edge_length
 
     while True:
         removed = False
