@@ -101,22 +101,12 @@ def draw_graph_on_image(graph: nx.Graph, image_shape: tuple) -> np.ndarray:
     image = np.zeros((image_shape[0], image_shape[1], 3), dtype=np.uint8)
 
     # Iterate through the edges and draw them
-    # Define a list of distinct BGR colors
-    colors = [
-        (0, 0, 255),   # Red
-        (0, 255, 0),   # Green
-        (255, 0, 0),   # Blue
-        (0, 255, 255), # Yellow
-        (255, 0, 255), # Magenta
-        (255, 255, 0)  # Cyan
-    ]
-    for i, (_, _, data) in enumerate(graph.edges(data=True)):
+    for _, _, data in graph.edges(data=True):
         coords = data.get('coords')
         if coords is not None and len(coords) >= 2:
             # The graph now stores coords in (x, y) format.
             # cv2.polylines expects points as (x, y).
             points = np.array(coords, dtype=np.int32).reshape((-1, 1, 2))
-            color = colors[i % len(colors)]
-            cv2.polylines(image, [points], isClosed=False, color=color, thickness=1)
+            cv2.polylines(image, [points], isClosed=False, color=(0, 255, 0), thickness=1)
 
     return image
