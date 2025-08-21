@@ -6,61 +6,53 @@ import networkx as nx
 def build_graph_from_skeleton(skeleton: np.ndarray):
     """
     Builds a graph representation from a skeleton image using skan and networkx.
-    This version uses a more robust method of graph creation from a pandas edgelist.
+    This version uses manual iteration to ensure no attribute dictionaries are shared,
+    which is a robust way to avoid subtle bugs in library helpers.
     """
     skel_bool = skeleton.astype(bool)
-    # The `skan.Skeleton` object is the main interface to the skeleton data
     graph_obj = Skeleton(skel_bool)
-    # The `summarize` function returns a pandas DataFrame with branch information
     summary = summarize(graph_obj)
 
-    # If no branches are found, return an empty graph
+    G = nx.Graph()
+
     if summary.empty:
-        return nx.Graph(), summary
+        return G, summary
 
-    # Create the graph directly from the pandas DataFrame edgelist
-    # This is more robust than manual iteration
-    G = nx.from_pandas_edgelist(
-        summary,
-        source='node-id-src',
-        target='node-id-dst',
-        edge_attr=['branch-distance', 'skeleton-id'],
-    )
+    # Add nodes and edges manually from the summary DataFrame
+    for _, row in summary.iterrows():
+        # Add source and destination nodes, if they don't already exist
+        for prefix in ['src', 'dst']:
+            node_id = int(row[f'node-id-{prefix}'])
+            if not G.has_node(node_id):
+                degree = graph_obj.degrees[node_id]
+                kind = 'path'
+                if degree == 1:
+                    kind = 'endpoint'
+                elif degree >= 3:
+                    kind = 'junction'
 
-    # Add node attributes (like position and kind) after creation
-    for node_id in G.nodes:
-        # The degree of the node in the context of the whole skeleton
-        degree = graph_obj.degrees[node_id]
-        kind = 'path' # Default kind
-        if degree == 1:
-            kind = 'endpoint'
-        elif degree >= 3:
-            kind = 'junction'
-        G.nodes[node_id]['kind'] = kind
+                # skan provides coords as (row, col), which is (y, x).
+                # We store them internally as (x, y) for consistency with shapely/rendering
+                pos_x = row[f'coord-{prefix}-1']
+                pos_y = row[f'coord-{prefix}-0']
+                G.add_node(node_id, kind=kind, pos=(pos_x, pos_y))
 
-        # Find the node's coordinates from its first appearance in the summary
-        # Check if it appears as a source node
-        src_rows = summary[summary['node-id-src'] == node_id]
-        if not src_rows.empty:
-            row = src_rows.iloc[0]
-            # skan provides coords as (row, col), which is (y, x)
-            G.nodes[node_id]['pos'] = (row['coord-src-1'], row['coord-src-0'])
-            continue
+        # Add the edge with its own unique attribute dictionary
+        u, v = int(row['node-id-src']), int(row['node-id-dst'])
+        if u != v:
+            # skan provides coords as (row, col), which is (y, x).
+            # We store them internally as (x, y).
+            # It's crucial to perform this flip ONCE here.
+            path_coords = graph_obj.path_coordinates(int(row['skeleton-id']))
+            path_coords_xy = np.fliplr(path_coords)
 
-        # If not found as a source, check as a destination node
-        dst_rows = summary[summary['node-id-dst'] == node_id]
-        if not dst_rows.empty:
-            row = dst_rows.iloc[0]
-            G.nodes[node_id]['pos'] = (row['coord-dst-1'], row['coord-dst-0'])
-
-    # Add path coordinates and rename 'branch-distance' to 'length' for consistency
-    for u, v, data in G.edges(data=True):
-        skeleton_id = data['skeleton-id']
-        path_coords = graph_obj.path_coordinates(skeleton_id)
-        G[u][v]['coords'] = path_coords
-        G[u][v]['length'] = data['branch-distance']
-        # The original 'branch-distance' and 'skeleton-id' keys can be removed if desired
-        # but leaving them is harmless.
+            G.add_edge(
+                u,
+                v,
+                id=int(row['skeleton-id']),
+                length=row['branch-distance'],
+                coords=path_coords_xy # Stored as (x, y)
+            )
 
     return G, summary
 
