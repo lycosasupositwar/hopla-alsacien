@@ -1,7 +1,5 @@
 import React from 'react';
 
-import React from 'react';
-
 import { LogsPanel } from './LogsPanel';
 
 // Define the types for the debug data props
