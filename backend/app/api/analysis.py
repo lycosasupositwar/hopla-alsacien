@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from flask import Blueprint, request, jsonify
 
-from ..schemas.models import AnalysisParameters, AnalysisResult, EdgeStats, Timings, Overlays, DebugOverlays
+from ..schemas.models import AnalysisParameters, AnalysisResult, EdgeStats, Timings, Overlays, DebugOverlays, DebugStats
 from ..utils.image_utils import read_image_from_bytes, encode_image_to_base64, create_overlay_image
 from ..processing.preprocess import preprocess_image
 from ..processing.skeleton import skeletonize_image, estimate_border_width
@@ -83,7 +83,17 @@ def analyze_image():
         # 3. Graph Construction and Pruning
         start_time = time.time()
         graph, _ = build_graph_from_skeleton(skeleton)
-        pruned_graph = prune_graph(graph, params.skeleton_prune_ratio)
+
+        # Capture stats before pruning
+        nodes_before = graph.number_of_nodes()
+        edges_before = graph.number_of_edges()
+
+        pruned_graph = prune_graph(graph.copy(), params.skeleton_prune_ratio) # Important: prune a copy
+
+        # Capture stats after pruning
+        nodes_after = pruned_graph.number_of_nodes()
+        edges_after = pruned_graph.number_of_edges()
+
         timings["graph_s"] = time.time() - start_time
 
         # 4. Motif Generation
@@ -113,6 +123,14 @@ def analyze_image():
     debug_overlays = DebugOverlays(
         binary_image_base64=debug_binary_base64,
         skeleton_image_base64=debug_skeleton_base64,
+    )
+
+    # Create debug stats object
+    debug_stats = DebugStats(
+        nodes_before_pruning=nodes_before,
+        edges_before_pruning=edges_before,
+        nodes_after_pruning=nodes_after,
+        edges_after_pruning=edges_after,
     )
 
     # Edge Stats & Geometry
@@ -159,7 +177,8 @@ def analyze_image():
         warnings=warnings,
         timings=Timings(**timings),
         params_used=params,
-        debug_overlays=debug_overlays
+        debug_overlays=debug_overlays,
+        debug_stats=debug_stats
     )
 
     return jsonify(final_result.model_dump())

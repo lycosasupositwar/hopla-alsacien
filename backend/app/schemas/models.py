@@ -74,6 +74,16 @@ class DebugOverlays(BaseModel):
     skeleton_image_base64: str
 
 
+class DebugStats(BaseModel):
+    """
+    A model to hold statistics for debugging the graph processing steps.
+    """
+    nodes_before_pruning: int
+    edges_before_pruning: int
+    nodes_after_pruning: int
+    edges_after_pruning: int
+
+
 class AnalysisResult(BaseModel):
     image_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     metrics: Metrics
@@ -85,3 +95,4 @@ class AnalysisResult(BaseModel):
     timings: Timings
     params_used: AnalysisParameters
     debug_overlays: Optional[DebugOverlays] = None
+    debug_stats: Optional[DebugStats] = None
