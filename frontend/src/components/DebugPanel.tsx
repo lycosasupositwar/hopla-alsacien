@@ -15,6 +15,8 @@ interface DebugStats {
     nodes_after_pruning: number;
     edges_after_pruning: number;
     edge_geometries_count: number;
+    edges_before_pruning_coords?: string[];
+    edges_after_pruning_coords?: string[];
 }
 
 interface DebugPanelProps {
@@ -45,9 +47,27 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ debugOverlays, debugStats }) =>
                 </div>
             )}
 
+            {/* Coordinate Consoles */}
+            {debugStats?.edges_before_pruning_coords && (
+                <details className="mt-4">
+                    <summary className="cursor-pointer text-md font-medium">Raw Skeleton Edge Coordinates ({debugStats.edges_before_pruning_coords.length})</summary>
+                    <pre className="mt-2 p-2 bg-muted/50 rounded-lg text-xs overflow-auto max-h-48 font-mono">
+                        {debugStats.edges_before_pruning_coords.join('\n')}
+                    </pre>
+                </details>
+            )}
+            {debugStats?.edges_after_pruning_coords && (
+                <details className="mt-2">
+                    <summary className="cursor-pointer text-md font-medium">Final Graph Edge Coordinates ({debugStats.edges_after_pruning_coords.length})</summary>
+                    <pre className="mt-2 p-2 bg-muted/50 rounded-lg text-xs overflow-auto max-h-48 font-mono">
+                        {debugStats.edges_after_pruning_coords.join('\n')}
+                    </pre>
+                </details>
+            )}
+
             {/* Image Overlays */}
             {debugOverlays && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <div>
                         <h3 className="text-md font-medium text-center mb-2">1. Preprocessing Result</h3>
                         <img
