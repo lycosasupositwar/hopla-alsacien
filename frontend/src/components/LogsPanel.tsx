@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button"; // Button exists, so I can keep it.
 import { fetchLogs } from "@/lib/api";
 
 export const LogsPanel = () => {
@@ -27,26 +25,26 @@ export const LogsPanel = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Container Logs</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="p-4 border rounded-lg bg-card text-card-foreground shadow-sm">
+      <div className="flex flex-col space-y-1.5 p-6">
+         <h3 className="font-semibold leading-none tracking-tight">Container Logs</h3>
+      </div>
+      <div className="p-6 pt-0">
         <div className="flex flex-col gap-4">
           <Button onClick={handleFetchLogs} disabled={isLoading}>
             {isLoading ? "Loading..." : "Fetch Logs"}
           </Button>
           {error && <p className="text-red-500">{error}</p>}
           {logs !== null && (
-            <Textarea
+            <textarea
               readOnly
               value={logs}
-              className="h-96 font-mono text-xs"
+              className="mt-2 flex h-96 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono text-xs"
               placeholder="Logs will appear here..."
             />
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
