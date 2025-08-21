@@ -3,9 +3,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    command: sh -c "exec gunicorn 'app.main:app' --workers 4 --bind 0.0.0.0:8050 --access-logfile /var/log/app/backend_access.log --error-logfile /var/log/app/backend_error.log"
     volumes:
       - ./backend/reports:/app/reports
       - ./backend/uploads:/app/uploads
+      - logs:/var/log/app
     environment:
       - MAX_IMAGE_PIXELS=25000000 # e.g., 5000x5000
       - BATCH_TIMEOUT_S=300
@@ -23,6 +25,8 @@ services:
     build: ./nginx
     ports:
       - "8080:80"
+    volumes:
+      - logs:/var/log/app
     depends_on:
       - frontend
       - backend
@@ -31,3 +35,4 @@ services:
 volumes:
   reports:
   uploads:
+  logs:

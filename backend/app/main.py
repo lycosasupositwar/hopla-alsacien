@@ -4,6 +4,7 @@ from flask_cors import CORS
 from .api.analysis import analysis_bp
 from .api.reports import reports_bp
 from .api.preview import preview_bp
+from .api.logs import logs_bp
 
 def create_app():
     """Create and configure an instance of the Flask application."""
@@ -18,6 +19,7 @@ def create_app():
     app.register_blueprint(analysis_bp, url_prefix='/api')
     app.register_blueprint(reports_bp, url_prefix='/api')
     app.register_blueprint(preview_bp, url_prefix='/api/preview')
+    app.register_blueprint(logs_bp, url_prefix='/api')
 
     @app.route("/")
     def health_check():
