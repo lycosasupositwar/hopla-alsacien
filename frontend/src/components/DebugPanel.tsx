@@ -1,7 +1,5 @@
 import React from 'react';
 
-import React from 'react';
-
 // Define the types for the debug data props
 interface DebugOverlays {
     binary_image_base64: string;
