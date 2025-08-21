@@ -5,7 +5,7 @@ import numpy as np
 from flask import Blueprint, request, jsonify
 
 from ..schemas.models import AnalysisParameters, AnalysisResult, EdgeStats, Timings, Overlays, DebugOverlays, DebugStats
-from ..utils.image_utils import read_image_from_bytes, encode_image_to_base64, create_overlay_image
+from ..utils.image_utils import read_image_from_bytes, encode_image_to_base64, create_overlay_image, draw_graph_on_image
 from ..processing.preprocess import preprocess_image
 from ..processing.skeleton import skeletonize_image, estimate_border_width
 from ..processing.graph import build_graph_from_skeleton, prune_graph
@@ -119,10 +119,15 @@ def analyze_image():
 
     # --- Assemble Response ---
 
+    # Draw the pruned graph for debugging
+    pruned_graph_image = draw_graph_on_image(pruned_graph, original_image.shape)
+    debug_pruned_graph_base64 = encode_image_to_base64(pruned_graph_image)
+
     # Create debug overlays object
     debug_overlays = DebugOverlays(
         binary_image_base64=debug_binary_base64,
         skeleton_image_base64=debug_skeleton_base64,
+        pruned_graph_image_base64=debug_pruned_graph_base64,
     )
 
     # Edge Stats & Geometry
