@@ -2,11 +2,14 @@ import React from 'react';
 
 import React from 'react';
 
+import { LogsPanel } from './LogsPanel';
+
 // Define the types for the debug data props
 interface DebugOverlays {
     binary_image_base64: string;
     skeleton_image_base64: string;
     pruned_graph_image_base64: string;
+    motifs_image_base64: string;
 }
 
 interface DebugStats {
@@ -47,7 +50,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ debugOverlays, debugStats }) =>
 
             {/* Image Overlays */}
             {debugOverlays && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <h3 className="text-md font-medium text-center mb-2">1. Preprocessing Result</h3>
                         <img
@@ -72,8 +75,21 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ debugOverlays, debugStats }) =>
                             className="w-full h-auto border rounded-md"
                         />
                     </div>
+                    <div>
+                        <h3 className="text-md font-medium text-center mb-2">4. Generated Motifs</h3>
+                        <img
+                            src={debugOverlays.motifs_image_base64}
+                            alt="Generated Motifs"
+                            className="w-full h-auto border rounded-md"
+                        />
+                    </div>
                 </div>
             )}
+
+            {/* Container Logs Panel */}
+            <div className="mt-4">
+                <LogsPanel />
+            </div>
         </div>
     );
 };

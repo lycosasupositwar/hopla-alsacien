@@ -49,6 +49,23 @@ export const analyzeImage = async (
   }
 };
 
+
+/**
+ * Fetches the latest logs from the backend.
+ * @returns A record containing the log file contents.
+ */
+export const fetchLogs = async (): Promise<Record<string, string>> => {
+  try {
+    const response = await apiClient.get('/logs');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.error || 'An unknown error occurred while fetching logs.');
+    }
+    throw new Error('An unexpected error occurred while fetching logs.');
+  }
+};
+
 /**
  * Requests a PDF report for a given analysis result.
  * @param analysisResult The JSON result from a previous analysis.
