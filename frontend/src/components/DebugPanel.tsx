@@ -13,6 +13,7 @@ interface DebugStats {
     edges_before_pruning: number;
     nodes_after_pruning: number;
     edges_after_pruning: number;
+    edge_geometries_count: number;
 }
 
 interface DebugPanelProps {
@@ -38,6 +39,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ debugOverlays, debugStats }) =>
                         <li>Edges before pruning: {debugStats.edges_before_pruning}</li>
                         <li className="pt-1 border-t border-muted-foreground/20">Nodes after pruning:  {debugStats.nodes_after_pruning}</li>
                         <li>Edges after pruning:  {debugStats.edges_after_pruning}</li>
+                        <li className="pt-1 border-t border-destructive/20 text-destructive">Edges sent to frontend: {debugStats.edge_geometries_count}</li>
                     </ul>
                 </div>
             )}
