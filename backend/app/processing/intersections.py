@@ -26,8 +26,9 @@ def detect_and_cluster_intersections(
         # coords from skan are (row, col) -> (y, x)
         coords = data.get('coords')
         if coords is not None and len(coords) >= 2:
-            # The coordinates are assumed to be in (x, y) format already.
-            all_edges.append(LineString(coords))
+            # Shapely expects (x, y), so we must flip the columns of the coordinate array
+            coords_xy = np.fliplr(coords)
+            all_edges.append(LineString(coords_xy))
 
     skeleton_multiline = MultiLineString(all_edges)
 
