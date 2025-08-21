@@ -51,7 +51,7 @@ def build_graph_from_skeleton(skeleton: np.ndarray):
                 v,
                 id=int(row['skeleton-id']),
                 length=row['branch-distance'],
-                coords=path_coords_xy # Stored as (x, y)
+                coords=path_coords_xy.copy() # Stored as (x, y)
             )
 
     return G, summary
