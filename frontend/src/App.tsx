@@ -29,6 +29,12 @@ type AnalysisResult = {
     binary_image_base64: string;
     skeleton_image_base64: string;
   };
+  debug_stats?: {
+    nodes_before_pruning: number;
+    edges_before_pruning: number;
+    nodes_after_pruning: number;
+    edges_after_pruning: number;
+  };
   // other fields...
 } | null;
 
@@ -167,7 +173,10 @@ function MainApp() {
                     } : undefined}
                   />
                </div>
-               <DebugPanel debugData={analysisResult?.debug_overlays} />
+               <DebugPanel
+                  debugOverlays={analysisResult?.debug_overlays}
+                  debugStats={analysisResult?.debug_stats}
+               />
                <div className="p-4 border rounded-lg space-y-4">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <ResultsTable results={analysisResult?.metrics} />
