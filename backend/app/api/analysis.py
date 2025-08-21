@@ -125,20 +125,21 @@ def analyze_image():
         skeleton_image_base64=debug_skeleton_base64,
     )
 
-    # Create debug stats object
-    debug_stats = DebugStats(
-        nodes_before_pruning=nodes_before,
-        edges_before_pruning=edges_before,
-        nodes_after_pruning=nodes_after,
-        edges_after_pruning=edges_after,
-    )
-
     # Edge Stats & Geometry
     edge_lengths = [d['length'] for _, _, d in pruned_graph.edges(data=True)]
     edge_geometries = [
         {'coords': np.fliplr(d['coords']).tolist()} for _, _, d in pruned_graph.edges(data=True) if 'coords' in d
     ]
-    debug_stats.edge_geometries_count = len(edge_geometries)
+
+    # Create debug stats object now that all stats are calculated
+    debug_stats = DebugStats(
+        nodes_before_pruning=nodes_before,
+        edges_before_pruning=edges_before,
+        nodes_after_pruning=nodes_after,
+        edges_after_pruning=edges_after,
+        edge_geometries_count=len(edge_geometries)
+    )
+
     edge_stats = EdgeStats(
         n_nodes=pruned_graph.number_of_nodes(),
         n_edges=pruned_graph.number_of_edges(),
