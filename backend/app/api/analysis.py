@@ -123,11 +123,16 @@ def analyze_image():
     pruned_graph_image = draw_graph_on_image(pruned_graph, original_image.shape)
     debug_pruned_graph_base64 = encode_image_to_base64(pruned_graph_image)
 
+    # Create overlays for debugging and final output
+    motifs_only_overlay = create_overlay_image(np.zeros_like(original_image), motifs=motifs)
+    motifs_only_base64 = encode_image_to_base64(motifs_only_overlay)
+
     # Create debug overlays object
     debug_overlays = DebugOverlays(
         binary_image_base64=debug_binary_base64,
         skeleton_image_base64=debug_skeleton_base64,
         pruned_graph_image_base64=debug_pruned_graph_base64,
+        motifs_image_base64=motifs_only_base64,
     )
 
     # Edge Stats & Geometry
@@ -155,12 +160,11 @@ def analyze_image():
     # Create Overlays
     annotated_overlay = create_overlay_image(original_image, skeleton, motifs, intersections)
     skeleton_only_overlay = create_overlay_image(np.zeros_like(original_image), skeleton=skeleton)
-    motifs_only_overlay = create_overlay_image(np.zeros_like(original_image), motifs=motifs)
 
     overlays = Overlays(
         annotated_png_base64=encode_image_to_base64(annotated_overlay),
         skeleton_png_base64=encode_image_to_base64(skeleton_only_overlay),
-        motifs_png_base64=encode_image_to_base64(motifs_only_overlay)
+        motifs_png_base64=motifs_only_base64
     )
 
     timings["total_s"] = time.time() - start_total_time
