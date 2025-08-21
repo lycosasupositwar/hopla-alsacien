@@ -64,6 +64,11 @@ def _generate_linear_motifs(image_shape: tuple, params: Dict[str, Any], rng) -> 
 
         final_coords = list(clipped_line.coords)
 
+        # A valid LineString requires at least two points. Clipping can reduce a
+        # line to a single point or nothing.
+        if len(final_coords) < 2:
+            continue
+
         motifs.append({
             "id": f"L-{i}",
             "type": "linear",
