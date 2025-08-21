@@ -137,8 +137,14 @@ def analyze_image():
     ]
 
     # Create debug stats object now that all stats are calculated
-    edges_before_coords = [str(d.get('coords', 'N/A').tolist()) for _, _, d in graph.edges(data=True)]
-    edges_after_coords = [str(d.get('coords', 'N/A').tolist()) for _, _, d in pruned_graph.edges(data=True)]
+    edges_before_coords = [
+        f"ID: {d.get('id', 'N/A')}, Coords: {str(d.get('coords', 'N/A').tolist())}"
+        for _, _, d in graph.edges(data=True)
+    ]
+    edges_after_coords = [
+        f"ID: {d.get('id', 'N/A')}, Coords: {str(d.get('coords', 'N/A').tolist())}"
+        for _, _, d in pruned_graph.edges(data=True)
+    ]
 
     debug_stats = DebugStats(
         nodes_before_pruning=nodes_before,
