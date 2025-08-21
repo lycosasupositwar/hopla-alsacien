@@ -42,10 +42,23 @@ def detect_and_cluster_intersections(
         if intersection_obj.is_empty:
             continue
 
-        if isinstance(intersection_obj, Point):
-            points = [intersection_obj]
-        else: # MultiPoint or GeometryCollection
-            points = [p for p in intersection_obj.geoms if isinstance(p, Point)]
+        points = []
+        # A shapely intersection can return a Point, LineString, a multi-part
+        # geometry (e.g., MultiPoint), or a collection of geometries.
+        # We need to robustly handle all of these cases.
+        geoms_to_process = []
+        if hasattr(intersection_obj, 'geoms'): # Handles multi-part geometries
+            geoms_to_process.extend(intersection_obj.geoms)
+        else: # Handles single geometries
+            geoms_to_process.append(intersection_obj)
+
+        for geom in geoms_to_process:
+            if isinstance(geom, Point):
+                points.append(geom)
+            elif isinstance(geom, LineString) and not geom.is_empty:
+                # If lines overlap, take the start and end points of the overlap
+                points.append(Point(geom.coords[0]))
+                points.append(Point(geom.coords[-1]))
 
         for p in points:
             raw_intersections.append([p.x, p.y])

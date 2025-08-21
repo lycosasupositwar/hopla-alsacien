@@ -6,32 +6,30 @@ import pandas as pd
 def build_graph_from_skeleton(skeleton: np.ndarray):
     """
     Builds a graph representation from a skeleton image using skan and networkx.
-    This version iterates directly over the paths in the skan.Skeleton object
-    to avoid a bug in skan.summarize() that was causing all skeleton IDs to be 0.
+    This version uses skan.summarize() to identify all paths and their IDs,
+    then fetches the coordinates for each path ID from the Skeleton object.
+    This is more robust than iterating from 0..n_paths.
     """
     skel_bool = skeleton.astype(bool)
     graph_obj = Skeleton(skel_bool)
 
+    # Use summarize to get a dataframe of all branches. The index of this
+    # dataframe contains the correct, unique path IDs.
+    summary_df = summarize(graph_obj, separator='-')
+
     G = nx.Graph()
-    # Use a map from the skan node ID (pixel index) to our new graph node ID
     node_map = {}
     next_node_id = 0
 
-    # Iterate over all paths found by skan
-    for i in range(graph_obj.n_paths):
-        path_indices = graph_obj.path(i)
-
-        if len(path_indices) < 2:
-            continue
-
-        # Get start and end node indices from the path
-        start_node_idx = path_indices[0]
-        end_node_idx = path_indices[-1]
+    # Iterate over the paths identified by summarize()
+    for path_id, branch_data in summary_df.iterrows():
+        # Get start and end node pixel indices from the summary
+        start_node_idx = int(branch_data['node-id-src'])
+        end_node_idx = int(branch_data['node-id-dst'])
 
         # Get or create node for the start pixel
         if start_node_idx not in node_map:
             node_map[start_node_idx] = next_node_id
-            # Convert pixel index to (row, col) -> (y, x) coordinates
             pos_y, pos_x = np.unravel_index(start_node_idx, skeleton.shape)
             G.add_node(next_node_id, pos=(int(pos_x), int(pos_y)))
             next_node_id += 1
@@ -49,23 +47,21 @@ def build_graph_from_skeleton(skeleton: np.ndarray):
         if u == v:
             continue
 
-        # Add the edge with its own unique attribute dictionary
-        path_coords = graph_obj.path_coordinates(i)
+        # Fetch the path coordinates using the correct path_id from the summary
+        path_coords = graph_obj.path_coordinates(path_id)
         path_coords_xy = np.fliplr(path_coords)
 
         G.add_edge(
             u,
             v,
-            id=i,
-            length=graph_obj.path_lengths()[i],
+            id=int(path_id),
+            length=branch_data['branch-distance'],
             coords=path_coords_xy.copy()
         )
 
-    # The rest of the pipeline expects a summary dataframe, so we create a
-    # minimal empty one to avoid breaking the API.
-    dummy_summary = pd.DataFrame()
-
-    return G, dummy_summary
+    # The rest of the pipeline expects a summary dataframe.
+    # We can return the one we generated.
+    return G, summary_df
 
 
 def prune_graph(G: nx.Graph, prune_ratio: float):
