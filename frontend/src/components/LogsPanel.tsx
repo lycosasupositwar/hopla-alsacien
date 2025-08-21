@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { fetchLogs } from "@/lib/api";
 
 export const LogsPanel = () => {
-  const [logs, setLogs] = useState<Record<string, string> | null>(null);
+  const [logs, setLogs] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export const LogsPanel = () => {
       const formattedLogs = Object.entries(logsData)
         .map(([fileName, content]) => `--- ${fileName} ---\n\n${content}`)
         .join("\n\n\n");
-      setLogs({ formatted: formattedLogs });
+      setLogs(formattedLogs);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
       setLogs(null);
@@ -37,10 +37,10 @@ export const LogsPanel = () => {
             {isLoading ? "Loading..." : "Fetch Logs"}
           </Button>
           {error && <p className="text-red-500">{error}</p>}
-          {logs && (
+          {logs !== null && (
             <Textarea
               readOnly
-              value={logs.formatted}
+              value={logs}
               className="h-96 font-mono text-xs"
               placeholder="Logs will appear here..."
             />
