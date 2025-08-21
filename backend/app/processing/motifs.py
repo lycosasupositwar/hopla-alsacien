@@ -1,3 +1,4 @@
+import sys
 from typing import List, Dict, Any
 import numpy as np
 from shapely.geometry import LineString, Point
@@ -19,16 +20,23 @@ def generate_motifs(image_shape: tuple, params: Dict[str, Any], seed: int) -> Li
 
 
 def _generate_linear_motifs(image_shape: tuple, params: Dict[str, Any], rng) -> List[Dict[str, Any]]:
+    print(f"--- MOTIF DEBUG: Starting motif generation ---", file=sys.stderr)
     motifs = []
     h, w = image_shape
+    print(f"MOTIF DEBUG: Image shape (h, w) = ({h}, {w})", file=sys.stderr)
+    print(f"MOTIF DEBUG: Received params = {params}", file=sys.stderr)
+
     count = params.get("count", 10)
     length_px = params.get("length_px", min(h, w) * 0.8)
     orientations = params.get("orientations", [0, 45, 90, 135])
+    print(f"MOTIF DEBUG: Using count={count}, length_px={length_px}, orientations={orientations}", file=sys.stderr)
 
     for i in range(count):
+        print(f"\nMOTIF DEBUG: Iteration {i}", file=sys.stderr)
         # Choose a random orientation
         angle_deg = rng.choice(orientations)
         angle_rad = np.deg2rad(angle_deg)
+        print(f"MOTIF DEBUG: angle_deg={angle_deg}", file=sys.stderr)
 
         # Define a safe area for the center of the line to be generated
         # This prevents the line from starting too close to the edge.
@@ -46,6 +54,7 @@ def _generate_linear_motifs(image_shape: tuple, params: Dict[str, Any], rng) -> 
         else:
             center_x = rng.uniform(low_x, high_x)
             center_y = rng.uniform(low_y, high_y)
+        print(f"MOTIF DEBUG: center_x={center_x}, center_y={center_y}", file=sys.stderr)
 
         # Calculate start and end points
         dx = (length_px / 2) * np.cos(angle_rad)
@@ -53,6 +62,7 @@ def _generate_linear_motifs(image_shape: tuple, params: Dict[str, Any], rng) -> 
 
         x1, y1 = center_x - dx, center_y - dy
         x2, y2 = center_x + dx, center_y + dy
+        print(f"MOTIF DEBUG: line points (x1,y1) to (x2,y2) = ({x1},{y1}) to ({x2},{y2})", file=sys.stderr)
 
         # Clip line to image boundaries to be safe
         line = LineString([(x1, y1), (x2, y2)])
@@ -60,13 +70,16 @@ def _generate_linear_motifs(image_shape: tuple, params: Dict[str, Any], rng) -> 
         clipped_line = line.intersection(bounds.buffer(0.1))
 
         if clipped_line.is_empty or not isinstance(clipped_line, LineString):
+            print(f"MOTIF DEBUG: Clipped line is empty or not a LineString. Skipping.", file=sys.stderr)
             continue
 
         final_coords = list(clipped_line.coords)
+        print(f"MOTIF DEBUG: Clipped line has {len(final_coords)} points.", file=sys.stderr)
 
         # A valid LineString requires at least two points. Clipping can reduce a
         # line to a single point or nothing.
         if len(final_coords) < 2:
+            print(f"MOTIF DEBUG: Not enough points in clipped line. Skipping.", file=sys.stderr)
             continue
 
         motifs.append({
@@ -75,7 +88,9 @@ def _generate_linear_motifs(image_shape: tuple, params: Dict[str, Any], rng) -> 
             "geometry": LineString(final_coords),
             "length_px": clipped_line.length
         })
+        print(f"MOTIF DEBUG: Successfully created motif {i}.", file=sys.stderr)
 
+    print(f"--- MOTIF DEBUG: Finished. Generated {len(motifs)} motifs. ---", file=sys.stderr)
     return motifs
 
 
