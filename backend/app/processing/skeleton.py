@@ -38,9 +38,13 @@ def estimate_border_width(binary_image: np.ndarray, skeleton: np.ndarray) -> flo
     if np.count_nonzero(binary_image) == 0 or np.count_nonzero(skeleton) == 0:
         return 1.0
 
-    # Calculate the Euclidean Distance Transform on the boundary pixels.
-    # For each boundary pixel, this calculates the distance to the nearest non-boundary pixel.
-    dist_transform = distance_transform_edt(binary_image > 0)
+    # Invert the image so that grains are foreground (for distance transform)
+    # The distance transform will calculate distance from grain pixels to the nearest boundary.
+    inverted_binary = (binary_image == 0)
+
+    # Calculate the Euclidean Distance Transform
+    # For each foreground pixel, edt stores the distance to the nearest background pixel.
+    dist_transform = distance_transform_edt(inverted_binary)
 
     # Sample the distance transform values only at the skeleton pixels
     # These values represent half the local thickness of the boundary
