@@ -11,6 +11,7 @@ class AnalysisParameters(BaseModel):
     morph_open_kernel: int = 3
     area_opening_min_size_px: int = 500
     skeleton_prune_ratio: float = 0.5
+    detect_twins: bool = False
     max_gap_connect_px: float = 100.0 # Will be recalculated based on mean edge length
     epsilon_factor: float = 1.0
     norm_profile: str = "ASTM"

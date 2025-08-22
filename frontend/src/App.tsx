@@ -51,6 +51,7 @@ function MainApp() {
     morph_open_kernel: 3,
     area_opening_min_size_px: 500,
     skeleton_prune_ratio: 0.5,
+    detect_twins: false,
   });
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
