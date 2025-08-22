@@ -48,6 +48,27 @@ Once the script is complete, you can:
 -   **Access the web UI** at `http://localhost:5173`.
 -   **View the generated report** in the `examples/output/` directory.
 
+## Future Improvements
+
+### AI-Powered Twin Detection
+
+The current implementation uses a classical computer vision approach (Hough Transform) to detect and remove twinning lines in austenitic stainless steel microstructures. While effective for well-defined, straight twins, this method can be limited by image noise and variations in twin morphology.
+
+A more robust and powerful approach would be to use a deep learning model for **semantic segmentation**, such as a **U-Net architecture**.
+
+**How it would work:**
+
+1.  **Data Annotation**: A dataset of microstructure images would be manually annotated, with each pixel labeled as "grain boundary," "twin," or "background."
+2.  **Model Training**: The U-Net model would be trained on this annotated dataset. The model learns the complex visual features and spatial relationships that differentiate twins from actual grain boundaries.
+3.  **Inference**: Once trained, the model can take a new image and produce a pixel-wise segmentation map, accurately classifying each component. This would allow for the direct exclusion of twins from the grain size calculation with high precision.
+
+**Advantages**:
+-   **Higher Accuracy**: Superior ability to distinguish between complex and ambiguous features compared to classical algorithms.
+-   **Robustness**: Less sensitive to variations in illumination, staining, and image quality.
+-   **Flexibility**: Can be trained to recognize other microstructural features simultaneously.
+
+This AI-based approach represents a significant potential enhancement for the tool, paving the way for more accurate and reliable automated analysis across a wider range of materials and conditions.
+
 ### Manual Installation
 
 1.  **Build and start the containers:**

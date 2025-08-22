@@ -60,7 +60,8 @@ def analyze_image():
             params.adaptive_block_size,
             params.adaptive_offset,
             params.morph_open_kernel,
-            params.area_opening_min_size_px
+            params.area_opening_min_size_px,
+            params.detect_twins
         )
         timings["preprocess_s"] = time.time() - start_time
 

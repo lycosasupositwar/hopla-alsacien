@@ -11,7 +11,7 @@ interface PreprocessPanelProps {
 
 const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChange, onPreview, isImageLoaded, isPreviewing }) => {
 
-    const handleParamChange = (key: string, value: number) => {
+    const handleParamChange = (key: string, value: number | boolean) => {
         onParamsChange({ ...params, [key]: value });
     };
 
@@ -58,6 +58,18 @@ const PreprocessPanel: React.FC<PreprocessPanelProps> = ({ params, onParamsChang
             onChange={(e) => handleParamChange('adaptive_offset', parseInt(e.target.value))}
             className="w-full"
          />
+        </div>
+        <div className="flex items-center space-x-2 pt-2">
+            <input
+                type="checkbox"
+                id="detect_twins"
+                checked={params.detect_twins}
+                onChange={(e) => handleParamChange('detect_twins', e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <label htmlFor="detect_twins" className="text-sm font-medium">
+                Présence de macles
+            </label>
         </div>
       </div>
       <Button
