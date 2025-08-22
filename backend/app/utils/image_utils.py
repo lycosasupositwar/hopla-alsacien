@@ -73,7 +73,8 @@ def create_overlay_image(
                 coords = np.array(geom.coords, dtype=np.int32).reshape((-1, 1, 2))
                 cv2.polylines(overlay, [coords], isClosed=False, color=(255, 0, 0), thickness=2)
             elif geom.geom_type == 'Polygon' or geom.geom_type == 'LinearRing': # Circle
-                coords = np.array(geom.exterior.coords, dtype=np.int32).reshape((-1, 1, 2))
+                # A LinearRing is the exterior of a Polygon. It doesn't have its own .exterior property.
+                coords = np.array(geom.coords, dtype=np.int32).reshape((-1, 1, 2))
                 cv2.polylines(overlay, [coords], isClosed=True, color=(255, 0, 0), thickness=2)
 
     # Overlay intersections (color-coded circles)
