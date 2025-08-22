@@ -20,6 +20,7 @@ def generate_motifs(image_shape: tuple, params: Dict[str, Any], seed: int) -> Li
 
 
 def _generate_linear_motifs(image_shape: tuple, params: Dict[str, Any], rng) -> List[Dict[str, Any]]:
+    raise ValueError("--- MOTIF DEBUG: I was called! ---")
     print(f"--- MOTIF DEBUG: Starting motif generation ---", file=sys.stderr, flush=True)
     motifs = []
     h, w = image_shape
