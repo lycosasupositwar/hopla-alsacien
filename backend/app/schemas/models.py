@@ -15,9 +15,8 @@ class AnalysisParameters(BaseModel):
     epsilon_factor: float = 1.0
     norm_profile: str = "ASTM"
     motifs: Dict[str, Any] = {
-        "type": "linear",
-        "count": 10,
-        "orientations": [0]
+        "type": "circular",
+        "count": 3
     }
     random_seed: int = 42
 
