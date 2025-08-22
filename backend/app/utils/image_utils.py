@@ -89,11 +89,6 @@ def create_overlay_image(
             cv2.circle(overlay, center, radius=8, color=color, thickness=-1) # Filled circle
             cv2.circle(overlay, center, radius=8, color=(0,0,0), thickness=2) # Black outline
 
-    # --- DEBUGGING: Draw a hardcoded diagonal line to test the canvas ---
-    h, w, _ = overlay.shape
-    cv2.line(overlay, (0, 0), (w - 1, h - 1), (255, 255, 255), 2)
-
-
     return overlay
 
 
