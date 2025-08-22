@@ -15,6 +15,7 @@ import SkeletonCanvas from "@/components/SkeletonCanvas"
 import ResultsTable from "@/components/ResultsTable"
 import HistogramCard from "@/components/HistogramCard"
 import DebugPanel from "@/components/DebugPanel"
+import { LogsPanel } from "@/components/LogsPanel"
 
 const queryClient = new QueryClient();
 
@@ -160,6 +161,7 @@ function MainApp() {
                   </div>
                 )}
               </div>
+              <LogsPanel />
             </div>
 
             <div className="lg:col-span-2 space-y-6">

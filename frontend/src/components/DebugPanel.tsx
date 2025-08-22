@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { LogsPanel } from './LogsPanel';
-
 // Define the types for the debug data props
 interface DebugOverlays {
     binary_image_base64: string;
@@ -84,10 +82,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ debugOverlays, debugStats }) =>
                 </div>
             )}
 
-            {/* Container Logs Panel */}
-            <div className="mt-4">
-                <LogsPanel />
-            </div>
         </div>
     );
 };
